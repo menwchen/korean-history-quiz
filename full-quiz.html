@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>한국사 주관식 퀴즈 (100문항+)</title>
+    <title>한국사 퀴즈 대모험!</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -12,251 +12,483 @@
             color: #e0e0e0;
             min-height: 100dvh;
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            overflow-x: hidden;
         }
         .container {
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
-            padding: clamp(12px, 3vw, 30px);
+            padding: clamp(10px, 3vw, 24px);
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
         }
-        header {
+
+        /* ===== START SCREEN ===== */
+        .start-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             text-align: center;
-            padding: clamp(15px, 4vw, 30px) 0;
+            gap: 20px;
+            animation: fadeIn 0.6s;
         }
-        header h1 {
+        .start-screen .mascot { font-size: clamp(60px, 15vw, 90px); }
+        .start-screen h1 {
+            font-size: clamp(1.6em, 6vw, 2.4em);
+            background: linear-gradient(to right, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .start-screen .sub {
+            color: #aaa;
+            font-size: clamp(0.85em, 2.5vw, 1em);
+            line-height: 1.5;
+        }
+        .period-select {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            max-width: 400px;
+        }
+        .period-chip {
+            padding: 8px 16px;
+            border-radius: 22px;
+            border: 1.5px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.06);
+            color: #ccc;
+            font-size: clamp(0.8em, 2.3vw, 0.92em);
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .period-chip:hover { border-color: #ffd200; color: #ffd200; }
+        .period-chip.selected {
+            background: rgba(255,215,0,0.18);
+            border-color: #ffd200;
+            color: #ffd200;
+            font-weight: 600;
+        }
+        .start-btn {
+            margin-top: 10px;
+            padding: 16px 48px;
+            border-radius: 30px;
+            border: none;
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            color: #1a1a2e;
+            font-size: clamp(1em, 3vw, 1.2em);
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 20px rgba(255,210,0,0.3);
+        }
+        .start-btn:active { transform: scale(0.96); }
+
+        /* ===== GAME SCREEN ===== */
+        .game-screen { display: none; flex: 1; flex-direction: column; animation: fadeIn 0.4s; }
+        .game-screen.active { display: flex; }
+
+        /* Top bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            margin-bottom: 10px;
+            font-size: clamp(0.82em, 2.3vw, 0.95em);
+        }
+        .top-bar .period-label {
+            background: rgba(255,215,0,0.12);
+            color: #ffd200;
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: clamp(0.75em, 2vw, 0.85em);
+        }
+        .top-bar .q-count { color: #aaa; }
+
+        /* Progress bar */
+        .progress-wrap {
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 5px;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #f7971e, #ffd200);
+            border-radius: 5px;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: clamp(14px, 4vw, 30px);
+            margin-bottom: 18px;
+            font-size: clamp(0.85em, 2.5vw, 1em);
+        }
+        .stat { text-align: center; }
+        .stat .num { font-size: clamp(1.3em, 4vw, 1.7em); font-weight: bold; }
+        .stat .label { font-size: clamp(0.7em, 2vw, 0.8em); color: #999; }
+        .stat.correct .num { color: #4caf50; }
+        .stat.wrong .num { color: #ff5252; }
+        .stat.streak .num { color: #ffd200; }
+
+        /* Question card */
+        .q-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: clamp(20px, 5vw, 40px) clamp(16px, 4vw, 30px);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            margin-bottom: 16px;
+            min-height: 200px;
+            position: relative;
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .q-card.pop-correct {
+            border-color: #4caf50;
+            background: rgba(76,175,80,0.1);
+        }
+        .q-card.pop-wrong {
+            border-color: #ff5252;
+            background: rgba(255,82,82,0.1);
+        }
+        .q-card .q-num-badge {
+            position: absolute;
+            top: 14px;
+            left: 16px;
+            font-size: clamp(0.7em, 2vw, 0.8em);
+            color: #666;
+        }
+        .q-card .q-text {
+            font-size: clamp(1.05em, 3.2vw, 1.35em);
+            line-height: 1.7;
+            word-break: keep-all;
+            color: #f0f0f0;
+            max-width: 500px;
+        }
+
+        /* Answer area */
+        .answer-area {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .answer-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .answer-input {
+            flex: 1;
+            min-width: 0;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: 2px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.07);
+            color: #fff;
+            font-size: 16px;
+            -webkit-appearance: none;
+            outline: none;
+            transition: border-color 0.2s;
+            text-align: center;
+        }
+        .answer-input:focus { border-color: #ffd200; }
+        .answer-input:disabled { opacity: 0.5; }
+        .submit-btn {
+            flex-shrink: 0;
+            padding: 14px 22px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: clamp(0.9em, 2.5vw, 1em);
+            cursor: pointer;
+            transition: transform 0.12s;
+        }
+        .submit-btn:active { transform: scale(0.95); }
+        .submit-btn:disabled { opacity: 0.4; cursor: default; }
+        .hint-row {
+            text-align: center;
+            margin-top: 4px;
+        }
+        .hint-btn {
+            background: none;
+            border: none;
+            color: #777;
+            font-size: clamp(0.78em, 2.2vw, 0.88em);
+            cursor: pointer;
+            padding: 6px 12px;
+        }
+        .hint-btn:hover { color: #ffd200; }
+        .hint-text {
+            color: #ffd200;
+            font-size: clamp(0.82em, 2.3vw, 0.92em);
+            margin-top: 4px;
+            animation: fadeIn 0.3s;
+        }
+
+        /* Feedback overlay */
+        .feedback-overlay {
+            display: none;
+            text-align: center;
+            margin-top: 12px;
+            animation: popUp 0.35s;
+        }
+        .feedback-overlay.show { display: block; }
+        .feedback-emoji { font-size: clamp(36px, 10vw, 56px); }
+        .feedback-msg {
+            font-size: clamp(0.95em, 2.8vw, 1.15em);
+            margin: 6px 0;
+            font-weight: 600;
+        }
+        .feedback-msg.correct-msg { color: #4caf50; }
+        .feedback-msg.wrong-msg { color: #ff5252; }
+        .feedback-answer {
+            color: #aaa;
+            font-size: clamp(0.82em, 2.3vw, 0.92em);
+        }
+        .next-btn {
+            margin-top: 14px;
+            padding: 12px 36px;
+            border-radius: 26px;
+            border: 2px solid #ffd200;
+            background: transparent;
+            color: #ffd200;
+            font-size: clamp(0.9em, 2.5vw, 1em);
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .next-btn:hover { background: rgba(255,215,0,0.1); }
+
+        /* ===== RESULT SCREEN ===== */
+        .result-screen {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 16px;
+            animation: fadeIn 0.5s;
+        }
+        .result-screen.active { display: flex; }
+        .result-emoji { font-size: clamp(60px, 15vw, 90px); }
+        .result-title {
             font-size: clamp(1.4em, 5vw, 2em);
             background: linear-gradient(to right, #f7971e, #ffd200);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        .score-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-            background: rgba(255,255,255,0.07);
-            border-radius: 12px;
-            padding: clamp(10px, 2vw, 16px);
-            margin-bottom: 16px;
-            font-size: clamp(0.85em, 2.5vw, 1em);
-        }
-        .progress-text { color: #aaa; }
-        .score-text { color: #ffd200; font-weight: bold; }
-        .period-nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-        .period-btn {
-            background: rgba(255,255,255,0.08);
-            color: #ccc;
-            border: 1px solid rgba(255,255,255,0.15);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: clamp(0.75em, 2.2vw, 0.85em);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .period-btn:hover, .period-btn.active {
-            background: rgba(255,215,0,0.15);
-            color: #ffd200;
-            border-color: #ffd200;
-        }
-        .question-card {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 14px;
-            padding: clamp(14px, 3vw, 22px);
-            margin-bottom: 12px;
-            transition: all 0.3s;
-        }
-        .question-card.correct {
-            border-color: #4caf50;
-            background: rgba(76,175,80,0.08);
-        }
-        .question-card.wrong {
-            border-color: #ff5252;
-            background: rgba(255,82,82,0.08);
-        }
-        .question-card.hidden { display: none; }
-        .q-header {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .q-number {
-            font-size: clamp(0.75em, 2vw, 0.85em);
-            color: #888;
-            white-space: nowrap;
-        }
-        .q-period {
-            font-size: clamp(0.65em, 1.8vw, 0.75em);
-            background: rgba(255,215,0,0.12);
-            color: #ffd200;
-            padding: 2px 8px;
-            border-radius: 10px;
-            white-space: nowrap;
-        }
-        .q-text {
-            font-size: clamp(0.95em, 2.8vw, 1.1em);
-            line-height: 1.6;
-            margin-bottom: 12px;
-            color: #eee;
-            word-break: keep-all;
-        }
-        .answer-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .answer-input {
-            flex: 1;
-            min-width: 0;
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.08);
+        .result-score {
+            font-size: clamp(2.2em, 8vw, 3.5em);
+            font-weight: 900;
             color: #fff;
-            font-size: 16px;
-            -webkit-appearance: none;
-            outline: none;
-            transition: border-color 0.2s;
         }
-        .answer-input:focus {
-            border-color: #ffd200;
+        .result-detail {
+            color: #aaa;
+            font-size: clamp(0.85em, 2.5vw, 1em);
+            line-height: 1.6;
         }
-        .answer-input:disabled {
-            opacity: 0.6;
+        .result-grade {
+            font-size: clamp(1em, 3vw, 1.2em);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
         }
-        .submit-btn {
-            flex-shrink: 0;
-            padding: 10px 18px;
-            border-radius: 10px;
+        .result-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .retry-btn {
+            padding: 14px 36px;
+            border-radius: 26px;
             border: none;
             background: linear-gradient(135deg, #f7971e, #ffd200);
             color: #1a1a2e;
-            font-weight: bold;
-            font-size: clamp(0.85em, 2.5vw, 0.95em);
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .submit-btn:disabled {
-            opacity: 0.4;
-            cursor: default;
-        }
-        .feedback {
-            margin-top: 8px;
-            font-size: clamp(0.82em, 2.3vw, 0.92em);
-            display: none;
-        }
-        .feedback.show { display: block; }
-        .feedback.correct-fb { color: #4caf50; }
-        .feedback.wrong-fb { color: #ff5252; }
-        .hint-btn {
-            background: none;
-            border: none;
-            color: #888;
-            font-size: clamp(0.75em, 2vw, 0.82em);
-            cursor: pointer;
-            margin-top: 6px;
-            text-decoration: underline;
-        }
-        .hint-btn:hover { color: #ffd200; }
-        .hint-text {
-            font-size: clamp(0.78em, 2.1vw, 0.85em);
-            color: #aaa;
-            margin-top: 4px;
-            display: none;
-        }
-        .hint-text.show { display: block; }
-        .bottom-bar {
-            text-align: center;
-            padding: 20px;
-            margin-top: 20px;
-        }
-        .reset-btn {
-            padding: 14px 36px;
-            border-radius: 12px;
-            border: 2px solid #ffd200;
-            background: transparent;
-            color: #ffd200;
             font-size: 1em;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s;
         }
-        .reset-btn:hover {
-            background: rgba(255,215,0,0.1);
+        .home-btn {
+            padding: 14px 36px;
+            border-radius: 26px;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: transparent;
+            color: #ccc;
+            font-size: 1em;
+            cursor: pointer;
         }
-        .result-summary {
-            display: none;
+
+        /* Wrong answers review */
+        .review-section {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .review-toggle {
+            display: block;
+            width: 100%;
             text-align: center;
-            padding: 30px;
-            margin: 20px 0;
             background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 14px;
-            border: 1px solid rgba(255,215,0,0.3);
+            padding: 12px;
+            color: #aaa;
+            font-size: clamp(0.85em, 2.5vw, 0.95em);
+            cursor: pointer;
         }
-        .result-summary h2 {
-            font-size: clamp(1.3em, 4vw, 1.8em);
-            color: #ffd200;
-            margin-bottom: 10px;
+        .review-list {
+            display: none;
+            margin-top: 10px;
         }
-        .result-summary .big-score {
-            font-size: clamp(2em, 7vw, 3em);
-            font-weight: bold;
-            color: #fff;
+        .review-list.open { display: block; }
+        .review-item {
+            background: rgba(255,82,82,0.06);
+            border: 1px solid rgba(255,82,82,0.15);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            font-size: clamp(0.82em, 2.3vw, 0.92em);
         }
-        .result-summary .grade {
-            font-size: clamp(1em, 3vw, 1.3em);
-            margin-top: 8px;
+        .review-item .ri-q { color: #ddd; margin-bottom: 4px; }
+        .review-item .ri-a { color: #ff8a80; }
+        .review-item .ri-my { color: #777; font-size: 0.9em; }
+
+        /* Confetti */
+        .confetti-wrap {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 999;
         }
-        @media (max-width: 480px) {
-            .container { padding: 10px; }
-            .question-card { padding: 12px; }
-            .answer-row { gap: 6px; }
-            .submit-btn { padding: 10px 14px; }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            animation: confettiFall linear forwards;
         }
-        @media (max-height: 500px) and (max-width: 700px) {
-            header { padding: 8px 0; }
-            .score-bar { padding: 8px; margin-bottom: 8px; }
-            .question-card { padding: 10px; margin-bottom: 8px; }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes popUp { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+        @keyframes confettiFall {
+            0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        @keyframes bounce {
+            0%,100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        .shake { animation: shake 0.4s; }
+        .bounce { animation: bounce 0.4s; }
+
+        @media (max-width: 400px) {
+            .container { padding: 8px; }
+            .q-card { padding: 16px 12px; min-height: 160px; }
         }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <header>
-        <h1>한국사 주관식 퀴즈</h1>
-        <p style="color:#aaa; margin-top:6px; font-size:clamp(0.8em,2.3vw,0.95em);">선사시대부터 현대까지 — 하나의 사실, 하나의 답</p>
-    </header>
 
-    <div class="score-bar">
-        <span class="progress-text">진행: <span id="answered">0</span> / <span id="total">0</span></span>
-        <span class="score-text">정답: <span id="score">0</span>점</span>
+    <!-- START SCREEN -->
+    <div class="start-screen" id="startScreen">
+        <div class="mascot">&#x1F3AF;</div>
+        <h1>한국사 퀴즈 대모험!</h1>
+        <p class="sub">시대를 골라서 도전하거나<br>전체를 한번에 풀어보세요!</p>
+        <div class="period-select" id="periodSelect"></div>
+        <div id="questionCount" style="color:#ffd200; font-size:clamp(0.85em,2.3vw,0.95em); font-weight:600;"></div>
+        <button class="start-btn" onclick="startGame()">시작하기!</button>
     </div>
 
-    <div class="period-nav" id="periodNav"></div>
+    <!-- GAME SCREEN -->
+    <div class="game-screen" id="gameScreen">
+        <div class="top-bar">
+            <span class="period-label" id="periodLabel"></span>
+            <span class="q-count" id="qCount"></span>
+        </div>
+        <div class="progress-wrap">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="stats-row">
+            <div class="stat correct"><div class="num" id="correctNum">0</div><div class="label">정답</div></div>
+            <div class="stat streak"><div class="num" id="streakNum">0</div><div class="label">연속</div></div>
+            <div class="stat wrong"><div class="num" id="wrongNum">0</div><div class="label">오답</div></div>
+        </div>
 
-    <div id="quizContainer"></div>
+        <div class="q-card" id="qCard">
+            <div class="q-num-badge" id="qNumBadge"></div>
+            <div class="q-text" id="qText"></div>
+        </div>
 
-    <div class="result-summary" id="resultSummary">
-        <h2>퀴즈 완료!</h2>
-        <div class="big-score"><span id="finalScore">0</span> / <span id="finalTotal">0</span></div>
-        <div class="grade" id="grade"></div>
+        <div class="answer-area" id="answerArea">
+            <div class="answer-row">
+                <input type="text" class="answer-input" id="answerInput" placeholder="정답을 입력하세요!" autocomplete="off"
+                    onkeydown="if(event.key==='Enter')submitAnswer()">
+                <button class="submit-btn" id="submitBtn" onclick="submitAnswer()">확인!</button>
+            </div>
+            <div class="hint-row">
+                <button class="hint-btn" id="hintBtn" onclick="showHint()">&#x1F4A1; 힌트 보기</button>
+                <div class="hint-text" id="hintText" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="feedback-overlay" id="feedbackOverlay">
+            <div class="feedback-emoji" id="fbEmoji"></div>
+            <div class="feedback-msg" id="fbMsg"></div>
+            <div class="feedback-answer" id="fbAnswer"></div>
+            <button class="next-btn" id="nextBtn" onclick="nextQuestion()">다음 문제 &#x27A1;&#xFE0F;</button>
+        </div>
     </div>
 
-    <div class="bottom-bar">
-        <button class="reset-btn" onclick="resetQuiz()">다시 풀기</button>
+    <!-- RESULT SCREEN -->
+    <div class="result-screen" id="resultScreen">
+        <div class="result-emoji" id="resultEmoji"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-score" id="resultScore"></div>
+        <div class="result-detail" id="resultDetail"></div>
+        <div class="result-grade" id="resultGrade"></div>
+        <div class="result-actions">
+            <button class="retry-btn" onclick="retryGame()">다시 도전!</button>
+            <button class="home-btn" onclick="goHome()">시대 선택</button>
+        </div>
+        <div class="review-section" id="reviewSection">
+            <button class="review-toggle" id="reviewToggle" onclick="toggleReview()">&#x1F4DD; 틀린 문제 보기</button>
+            <div class="review-list" id="reviewList"></div>
+        </div>
     </div>
+
 </div>
 
+<div class="confetti-wrap" id="confettiWrap"></div>
+
 <script>
-const quizData = [
+const allQuizData = [
     // ===== 선사시대 =====
     { period: "선사시대", q: "동굴과 막집에서 생활하며 주먹도끼, 찍개, 뗀석기를 사용한 시대는?", a: ["구석기", "구석기시대"], hint: "돌을 깨뜨려 만든 석기" },
     { period: "선사시대", q: "빗살무늬토기를 만들고, 가락바퀴를 사용한 시대는?", a: ["신석기", "신석기시대"], hint: "토기와 실잣기" },
@@ -269,8 +501,7 @@ const quizData = [
     { period: "선사시대", q: "민며느리제와 가족공동묘가 특징인 나라는?", a: ["옥저"], hint: "동해안 지역" },
     { period: "선사시대", q: "책화, 무천의 풍습이 있고 단궁·과하마·반어피가 특산물인 나라는?", a: ["동예"], hint: "족외혼도 이 나라" },
     { period: "선사시대", q: "소도(신성구역)가 있고, 지배자를 신지·읍차라 부른 사회는?", a: ["삼한"], hint: "마한, 진한, 변한" },
-
-    // ===== 고구려 =====
+    // ===== 삼국시대 =====
     { period: "삼국시대", q: "불교를 수용하고, 율령을 반포하며, 태학을 세운 고구려 왕은?", a: ["소수림왕"], hint: "고구려 체제 정비" },
     { period: "삼국시대", q: "'영락'이라는 연호를 사용하고, 신라에 침입한 왜를 격퇴한 고구려 왕은?", a: ["광개토대왕", "광개토왕", "광개토태왕"], hint: "거란·숙신·후연 정벌" },
     { period: "삼국시대", q: "평양으로 천도하고 광개토대왕릉비를 건립한 고구려 왕은?", a: ["장수왕"], hint: "백제 개로왕을 죽임" },
@@ -279,15 +510,11 @@ const quizData = [
     { period: "삼국시대", q: "살수대첩에서 수나라 군대를 물리친 고구려 장군은?", a: ["을지문덕"], hint: "살수(청천강)" },
     { period: "삼국시대", q: "고구려의 빈민 구제 제도로, 곡식을 빌려주었다가 가을에 갚게 한 것은?", a: ["진대법"], hint: "고구려의 복지 제도" },
     { period: "삼국시대", q: "고구려의 귀족 회의 제도 이름은?", a: ["제가회의"], hint: "국가 중대사 결정" },
-
-    // ===== 백제 =====
     { period: "삼국시대", q: "마한을 복속하고 고구려 고국원왕을 전사시킨 백제 왕은?", a: ["근초고왕"], hint: "백제 전성기" },
     { period: "삼국시대", q: "무령왕릉의 주인이며, 중국 남조의 양과 친선관계를 맺은 백제 왕은?", a: ["무령왕"], hint: "무령왕릉" },
     { period: "삼국시대", q: "남부여라 칭하고, 사비로 천도하며, 신라 진흥왕과 연합한 백제 왕은?", a: ["성왕"], hint: "한강 하류 일시 회복" },
     { period: "삼국시대", q: "백제의 지방 통치 제도로 왕족을 파견하여 다스린 22개 지역은?", a: ["22담로", "담로"], hint: "왕족 파견 지방통치" },
     { period: "삼국시대", q: "백제의 귀족 회의 장소로, 바위 위에서 회의를 한 곳은?", a: ["정사암"], hint: "바위 이름" },
-
-    // ===== 신라 =====
     { period: "삼국시대", q: "우경(소로 밭 가는 것)을 장려하고, 순장을 금지하며, '신라' 국호를 정한 왕은?", a: ["지증왕"], hint: "우산국 정벌도" },
     { period: "삼국시대", q: "이차돈의 순교를 계기로 불교를 공인하고, 율령을 반포한 신라 왕은?", a: ["법흥왕"], hint: "금관가야 병합" },
     { period: "삼국시대", q: "화랑도를 개편하고, 북한산 순수비를 세우며, 대가야를 정복한 신라 왕은?", a: ["진흥왕"], hint: "순수비" },
@@ -303,22 +530,15 @@ const quizData = [
     { period: "삼국시대", q: "신라 촌락 문서로, 노동력 징수와 세금 징수를 위해 작성된 것은?", a: ["민정문서"], hint: "촌락의 인구, 토지 기록" },
     { period: "삼국시대", q: "황산벌 전투에서 5천 결사대를 이끌고 싸운 백제 장군은?", a: ["계백"], hint: "5천 결사대" },
     { period: "삼국시대", q: "나당전쟁에서 신라가 당나라를 물리친 두 전투는?", a: ["매소성 기벌포", "매소성기벌포", "매소성, 기벌포", "매소성과 기벌포"], hint: "신라의 삼국 통일 완성" },
-
-    // ===== 가야 =====
     { period: "삼국시대", q: "전기 가야 연맹을 주도하고, 낙랑과 왜에 철을 수출한 가야는?", a: ["금관가야"], hint: "김해 지역" },
     { period: "삼국시대", q: "후기 가야 연맹을 주도한 가야는?", a: ["대가야"], hint: "고령 지역" },
     { period: "삼국시대", q: "가야의 건국 신화에 나오는 노래는?", a: ["구지가"], hint: "거북아 거북아~" },
-
-    // ===== 발해 =====
     { period: "삼국시대", q: "발해를 건국한 인물은?", a: ["대조영"], hint: "고구려 계승" },
     { period: "삼국시대", q: "당나라 산둥반도의 등주를 공격한 발해 장수는?", a: ["장문휴"], hint: "등주 공격" },
     { period: "삼국시대", q: "고구려를 계승한 나라로 '해동성국'이라 불린 국가는?", a: ["발해"], hint: "대조영 건국" },
     { period: "삼국시대", q: "발해의 행정 제도는 3성6부와 무엇으로 구성되었는가?", a: ["5경15부62주"], hint: "지방 행정 조직" },
-
-    // ===== 후삼국 =====
     { period: "삼국시대", q: "후백제를 세우고, 공산전투에서 왕건에게 승리한 인물은?", a: ["견훤"], hint: "신검에 의해 유폐" },
     { period: "삼국시대", q: "후고구려를 건립하고, 국호를 태봉으로 고치며, 광평성을 둔 인물은?", a: ["궁예"], hint: "철원 도읍" },
-
     // ===== 고려 =====
     { period: "고려", q: "사심관 제도, 기인제도, 훈요10조를 남긴 고려 왕은?", a: ["태조", "태조 왕건", "왕건"], hint: "고려 건국, 흑창" },
     { period: "고려", q: "노비안검법을 실시하고 과거제도를 도입한 고려 왕은?", a: ["광종"], hint: "왕권 강화" },
@@ -352,8 +572,7 @@ const quizData = [
     { period: "고려", q: "현존하는 세계 최고(最古)의 금속활자본은?", a: ["직지", "직지심체요절"], hint: "청주 흥덕사" },
     { period: "고려", q: "고려의 은으로 만든 화폐로, 활구라고도 불린 것은?", a: ["은병"], hint: "고려 화폐" },
     { period: "고려", q: "고려 수도 개경 근처의 국제 무역항은?", a: ["벽란도"], hint: "고려 국제 무역" },
-
-    // ===== 조선 전기 =====
+    // ===== 조선 =====
     { period: "조선", q: "위화도 회군을 단행하고, 황산에서 왜구를 물리친 조선 건국 인물은?", a: ["태조", "태조 이성계", "이성계"], hint: "요동 정벌 반대" },
     { period: "조선", q: "호패법을 실시하고, 6조직계제를 도입하며, 사병을 혁파한 조선 왕은?", a: ["태종"], hint: "신문고도 설치" },
     { period: "조선", q: "집현전을 설치하고, 훈민정음을 창제한 왕은?", a: ["세종", "세종대왕"], hint: "농사직설, 4군6진" },
@@ -378,8 +597,6 @@ const quizData = [
     { period: "조선", q: "세계문화유산으로, 교육과 선현 제사를 담당하며 흥선대원군이 47곳을 제외하고 폐지한 것은?", a: ["서원"], hint: "성리학 교육 기관" },
     { period: "조선", q: "일본에 파견된 조선의 외교사절단은?", a: ["통신사"], hint: "일본 외교" },
     { period: "조선", q: "조선시대 사법 기구로 죄인 체포·압송·형 집행을 담당한 곳은?", a: ["의금부"], hint: "사법 기구" },
-
-    // ===== 조선 후기 =====
     { period: "조선", q: "명과 후금 사이에서 중립외교를 펼치고, 대동법을 처음 실시한 왕은?", a: ["광해군"], hint: "강홍립 파병" },
     { period: "조선", q: "인조반정으로 즉위한 후 병자호란 때 남한산성으로 피신한 왕은?", a: ["인조"], hint: "삼전도의 굴욕" },
     { period: "조선", q: "북벌을 추진하고, 나선정벌에 군사를 파견한 왕은?", a: ["효종"], hint: "청에 대한 복수" },
@@ -413,7 +630,6 @@ const quizData = [
     { period: "조선", q: "세한도를 그리고 북한산비를 연구한 조선 후기 인물은?", a: ["김정희", "추사 김정희"], hint: "추사체" },
     { period: "조선", q: "인왕제색도와 금강전도를 그린 조선 후기 화가는?", a: ["정선"], hint: "진경산수화" },
     { period: "조선", q: "태종 때 만들어진 현존 동아시아 최고(最古)의 세계지도는?", a: ["혼일강리역대국도지도"], hint: "태종 때 제작" },
-
     // ===== 개항기 =====
     { period: "개항기", q: "서원을 철폐하고, 경복궁을 중건하며, 당백전을 발행하고, 척화비를 세운 인물은?", a: ["흥선대원군"], hint: "고종의 아버지" },
     { period: "개항기", q: "병인양요 때 정족산성에서 프랑스군을 물리친 장군은?", a: ["양헌수"], hint: "정족산성" },
@@ -445,7 +661,6 @@ const quizData = [
     { period: "개항기", q: "함경도 덕원 주민이 설립한 우리나라 최초의 근대식 학교는?", a: ["원산학사"], hint: "최초 근대 학교" },
     { period: "개항기", q: "정부가 만든 근대 교육기관으로 헐버트 등이 교사로 참여한 곳은?", a: ["육영공원"], hint: "양반 자제 영어·수학" },
     { period: "개항기", q: "조선 지방관이 곡식의 타지방 유출을 금하는 조치를 무엇이라 하는가?", a: ["방곡령"], hint: "곡식 유출 금지" },
-
     // ===== 일제시대 =====
     { period: "일제시대", q: "1910년대 일제 통치 방식으로, 헌병경찰·회사령·토지조사사업이 특징인 것은?", a: ["무단통치", "헌병경찰통치"], hint: "칼찬 경찰, 태형" },
     { period: "일제시대", q: "1920년대 일제가 쌀을 수탈하기 위해 실시한 정책은?", a: ["산미증식계획"], hint: "쌀 증산" },
@@ -482,7 +697,6 @@ const quizData = [
     { period: "일제시대", q: "동학의 3대 교주로 동학을 천도교로 바꾸고, 민족대표 33인에 참여한 인물은?", a: ["손병희"], hint: "천도교" },
     { period: "일제시대", q: "어린이날을 만든 인물은?", a: ["방정환"], hint: "어린이 운동" },
     { period: "일제시대", q: "영국인 베델과 함께 대한매일신보를 창간하고, 국채보상운동을 전개한 인물은?", a: ["양기탁"], hint: "베델과 함께" },
-
     // ===== 현대 =====
     { period: "현대", q: "조선건국동맹, 조선건국준비위원회를 조직하고 좌우합작운동에 참여한 인물은?", a: ["여운형"], hint: "좌우합작" },
     { period: "현대", q: "남한 단독 정부 수립을 주장한 '정읍발언'을 한 인물은?", a: ["이승만"], hint: "초대 대통령" },
@@ -506,142 +720,299 @@ const quizData = [
     { period: "현대", q: "사사오입 개헌안과 반민족행위특별조사위원회가 관련된 대통령은?", a: ["이승만"], hint: "제1공화국" },
 ];
 
-// ===== Quiz Logic =====
-const periods = [...new Set(quizData.map(q => q.period))];
-let currentFilter = "전체";
-let answered = 0, score = 0;
-const states = new Array(quizData.length).fill(null);
+// === Encouraging messages ===
+const correctMsgs = [
+    ["&#x1F389;", "대단해요!"],
+    ["&#x1F31F;", "정답! 역사 천재!"],
+    ["&#x1F3C6;", "완벽해요!"],
+    ["&#x1F44F;", "맞았어요! 최고!"],
+    ["&#x2728;", "훌륭해요!"],
+    ["&#x1F60E;", "멋져요!"],
+    ["&#x1F525;", "불꽃 정답!"],
+    ["&#x1F4AA;", "실력이 대단해!"],
+];
+const wrongMsgs = [
+    ["&#x1F914;", "아쉬워요!"],
+    ["&#x1F4DA;", "다음엔 맞출 수 있어요!"],
+    ["&#x1F64C;", "괜찮아요! 하나 배웠어요!"],
+    ["&#x1F60A;", "힘내요!"],
+];
+const streakMsgs = {
+    3: "3연속 정답! &#x1F525;",
+    5: "5연속! 대단해요! &#x1F31F;",
+    10: "10연속!! 역사 박사! &#x1F3C6;",
+    15: "15연속!!! 전설이다! &#x1F451;",
+};
+
+// === State ===
+let quizData = [];
+let currentIdx = 0;
+let correctCount = 0;
+let wrongCount = 0;
+let streak = 0;
+let maxStreak = 0;
+let hintUsed = false;
+let wrongList = [];
+let selectedPeriod = "전체";
+
+const periods = [...new Set(allQuizData.map(q => q.period))];
 
 function normalize(s) {
     return s.replace(/\s+/g, '').replace(/[·,.\-\/]/g, '').toLowerCase().trim();
 }
 
-function checkAnswer(idx) {
-    const input = document.getElementById('input-' + idx);
-    const btn = document.getElementById('btn-' + idx);
-    const fb = document.getElementById('fb-' + idx);
-    const card = document.getElementById('card-' + idx);
+function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+// === Init start screen ===
+function initStart() {
+    const sel = document.getElementById('periodSelect');
+    sel.innerHTML = '';
+    const allChip = document.createElement('div');
+    allChip.className = 'period-chip selected';
+    allChip.textContent = '전체 (' + allQuizData.length + ')';
+    allChip.onclick = () => selectPeriod('전체', allChip);
+    sel.appendChild(allChip);
+
+    periods.forEach(p => {
+        const count = allQuizData.filter(q => q.period === p).length;
+        const chip = document.createElement('div');
+        chip.className = 'period-chip';
+        chip.textContent = p + ' (' + count + ')';
+        chip.onclick = () => selectPeriod(p, chip);
+        sel.appendChild(chip);
+    });
+    updateCount();
+}
+
+function selectPeriod(p, chip) {
+    selectedPeriod = p;
+    document.querySelectorAll('.period-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    updateCount();
+}
+
+function updateCount() {
+    const count = selectedPeriod === '전체' ? allQuizData.length : allQuizData.filter(q => q.period === selectedPeriod).length;
+    document.getElementById('questionCount').textContent = count + '문제 도전!';
+}
+
+function startGame() {
+    quizData = selectedPeriod === '전체' ? [...allQuizData] : allQuizData.filter(q => q.period === selectedPeriod);
+    shuffle(quizData);
+    currentIdx = 0;
+    correctCount = 0;
+    wrongCount = 0;
+    streak = 0;
+    maxStreak = 0;
+    wrongList = [];
+
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('resultScreen').classList.remove('active');
+    document.getElementById('gameScreen').classList.add('active');
+
+    showQuestion();
+}
+
+function showQuestion() {
+    const q = quizData[currentIdx];
+    document.getElementById('periodLabel').textContent = q.period;
+    document.getElementById('qCount').textContent = (currentIdx + 1) + ' / ' + quizData.length;
+    document.getElementById('qNumBadge').textContent = 'Q' + (currentIdx + 1);
+    document.getElementById('qText').textContent = q.q;
+    document.getElementById('progressFill').style.width = (currentIdx / quizData.length * 100) + '%';
+    document.getElementById('correctNum').textContent = correctCount;
+    document.getElementById('wrongNum').textContent = wrongCount;
+    document.getElementById('streakNum').textContent = streak;
+
+    // Reset UI
+    const input = document.getElementById('answerInput');
+    input.value = '';
+    input.disabled = false;
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('feedbackOverlay').classList.remove('show');
+    document.getElementById('answerArea').style.display = 'block';
+    document.getElementById('hintText').style.display = 'none';
+    document.getElementById('hintBtn').style.display = 'inline-block';
+    hintUsed = false;
+
+    const card = document.getElementById('qCard');
+    card.className = 'q-card';
+    card.style.animation = 'none';
+    card.offsetHeight;
+    card.style.animation = 'fadeIn 0.35s';
+
+    setTimeout(() => input.focus(), 100);
+}
+
+function showHint() {
+    const q = quizData[currentIdx];
+    document.getElementById('hintText').textContent = '&#x1F4A1; ' + q.hint;
+    document.getElementById('hintText').innerHTML = '&#x1F4A1; ' + q.hint;
+    document.getElementById('hintText').style.display = 'block';
+    document.getElementById('hintBtn').style.display = 'none';
+    hintUsed = true;
+}
+
+function submitAnswer() {
+    const input = document.getElementById('answerInput');
     const userAns = normalize(input.value);
     if (!userAns) return;
 
-    const correct = quizData[idx].a.some(a => normalize(a) === userAns);
-
-    if (correct) {
-        states[idx] = 'correct';
-        score++;
-        card.classList.add('correct');
-        fb.textContent = '정답입니다!';
-        fb.className = 'feedback show correct-fb';
-    } else {
-        states[idx] = 'wrong';
-        card.classList.add('wrong');
-        fb.textContent = '오답! 정답: ' + quizData[idx].a[0];
-        fb.className = 'feedback show wrong-fb';
-    }
+    const q = quizData[currentIdx];
+    const isCorrect = q.a.some(a => normalize(a) === userAns);
 
     input.disabled = true;
-    btn.disabled = true;
-    answered++;
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('answerArea').style.display = 'none';
 
-    document.getElementById('answered').textContent = answered;
-    document.getElementById('score').textContent = score;
+    const card = document.getElementById('qCard');
+    const fb = document.getElementById('feedbackOverlay');
+    const fbEmoji = document.getElementById('fbEmoji');
+    const fbMsg = document.getElementById('fbMsg');
+    const fbAnswer = document.getElementById('fbAnswer');
 
-    const visibleCards = quizData.filter((q, i) =>
-        (currentFilter === '전체' || q.period === currentFilter) && states[i] !== null
-    ).length;
-    const totalVisible = quizData.filter(q =>
-        currentFilter === '전체' || q.period === currentFilter
-    ).length;
+    if (isCorrect) {
+        correctCount++;
+        streak++;
+        if (streak > maxStreak) maxStreak = streak;
+        card.classList.add('pop-correct');
 
-    if (answered === quizData.length) showResult();
+        const msg = correctMsgs[Math.floor(Math.random() * correctMsgs.length)];
+        fbEmoji.innerHTML = msg[0];
+        fbMsg.innerHTML = msg[1];
+        fbMsg.className = 'feedback-msg correct-msg';
+
+        let extra = '';
+        if (streakMsgs[streak]) extra = '<br>' + streakMsgs[streak];
+        fbAnswer.innerHTML = extra;
+
+        if (streak >= 5) spawnConfetti(8);
+        else if (streak >= 3) spawnConfetti(4);
+
+        document.getElementById('streakNum').textContent = streak;
+        document.getElementById('streakNum').parentElement.classList.add('bounce');
+        setTimeout(() => document.getElementById('streakNum').parentElement.classList.remove('bounce'), 400);
+    } else {
+        wrongCount++;
+        streak = 0;
+        card.classList.add('pop-wrong');
+        card.classList.add('shake');
+
+        const msg = wrongMsgs[Math.floor(Math.random() * wrongMsgs.length)];
+        fbEmoji.innerHTML = msg[0];
+        fbMsg.innerHTML = msg[1];
+        fbMsg.className = 'feedback-msg wrong-msg';
+        fbAnswer.innerHTML = '정답: <strong style="color:#ffd200;">' + q.a[0] + '</strong>';
+        wrongList.push({ q: q.q, correctA: q.a[0], myA: input.value, period: q.period });
+    }
+
+    document.getElementById('correctNum').textContent = correctCount;
+    document.getElementById('wrongNum').textContent = wrongCount;
+    document.getElementById('streakNum').textContent = streak;
+
+    fb.classList.add('show');
+
+    if (currentIdx >= quizData.length - 1) {
+        document.getElementById('nextBtn').textContent = '결과 보기 \u{1F3C6}';
+    } else {
+        document.getElementById('nextBtn').innerHTML = '다음 문제 &#x27A1;&#xFE0F;';
+    }
 }
 
-function showHint(idx) {
-    const h = document.getElementById('hint-' + idx);
-    h.classList.toggle('show');
+function nextQuestion() {
+    currentIdx++;
+    if (currentIdx >= quizData.length) {
+        showResults();
+        return;
+    }
+    showQuestion();
 }
 
-function showResult() {
-    const summary = document.getElementById('resultSummary');
-    document.getElementById('finalScore').textContent = score;
-    document.getElementById('finalTotal').textContent = quizData.length;
-    const pct = Math.round(score / quizData.length * 100);
-    let grade = '';
-    if (pct >= 90) grade = '훌륭합니다! 한국사 마스터!';
-    else if (pct >= 70) grade = '좋아요! 조금만 더 공부하면 완벽!';
-    else if (pct >= 50) grade = '절반 이상! 꾸준히 복습하세요.';
-    else grade = '다시 도전해 보세요!';
-    document.getElementById('grade').textContent = pct + '% — ' + grade;
-    summary.style.display = 'block';
-    summary.scrollIntoView({ behavior: 'smooth' });
+function showResults() {
+    document.getElementById('gameScreen').classList.remove('active');
+    const rs = document.getElementById('resultScreen');
+    rs.classList.add('active');
+
+    const pct = Math.round(correctCount / quizData.length * 100);
+    document.getElementById('resultScore').textContent = correctCount + ' / ' + quizData.length;
+    document.getElementById('progressFill').style.width = '100%';
+
+    let emoji, title, grade, gradeColor;
+    if (pct >= 90) { emoji = '&#x1F451;'; title = '역사 마스터!'; grade = 'S등급'; gradeColor = '#ffd200'; spawnConfetti(20); }
+    else if (pct >= 70) { emoji = '&#x1F31F;'; title = '역사 박사!'; grade = 'A등급'; gradeColor = '#4caf50'; spawnConfetti(10); }
+    else if (pct >= 50) { emoji = '&#x1F4AA;'; title = '잘 했어요!'; grade = 'B등급'; gradeColor = '#2196f3'; }
+    else if (pct >= 30) { emoji = '&#x1F4DA;'; title = '조금만 더!'; grade = 'C등급'; gradeColor = '#ff9800'; }
+    else { emoji = '&#x1F60A;'; title = '다시 도전해요!'; grade = 'D등급'; gradeColor = '#ff5252'; }
+
+    document.getElementById('resultEmoji').innerHTML = emoji;
+    document.getElementById('resultTitle').innerHTML = title;
+    document.getElementById('resultDetail').innerHTML = pct + '% 정답률 &nbsp;|&nbsp; 최대 연속 ' + maxStreak + '개';
+    const gradeEl = document.getElementById('resultGrade');
+    gradeEl.textContent = grade;
+    gradeEl.style.background = gradeColor + '22';
+    gradeEl.style.color = gradeColor;
+    gradeEl.style.border = '2px solid ' + gradeColor;
+
+    // Wrong review
+    const reviewSection = document.getElementById('reviewSection');
+    const reviewList = document.getElementById('reviewList');
+    if (wrongList.length > 0) {
+        reviewSection.style.display = 'block';
+        document.getElementById('reviewToggle').innerHTML = '&#x1F4DD; 틀린 문제 보기 (' + wrongList.length + '개)';
+        reviewList.innerHTML = '';
+        wrongList.forEach(w => {
+            reviewList.innerHTML += '<div class="review-item">' +
+                '<div class="ri-q">[' + w.period + '] ' + w.q + '</div>' +
+                '<div class="ri-a">정답: ' + w.correctA + '</div>' +
+                '<div class="ri-my">내 답: ' + w.myA + '</div>' +
+            '</div>';
+        });
+    } else {
+        reviewSection.style.display = 'none';
+    }
 }
 
-function filterByPeriod(period) {
-    currentFilter = period;
-    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-    quizData.forEach((q, i) => {
-        const card = document.getElementById('card-' + i);
-        if (period === '전체' || q.period === period) {
-            card.classList.remove('hidden');
-        } else {
-            card.classList.add('hidden');
-        }
-    });
+function toggleReview() {
+    document.getElementById('reviewList').classList.toggle('open');
 }
 
-function resetQuiz() {
-    answered = 0; score = 0;
-    states.fill(null);
-    document.getElementById('answered').textContent = 0;
-    document.getElementById('score').textContent = 0;
-    document.getElementById('resultSummary').style.display = 'none';
-    quizData.forEach((q, i) => {
-        const input = document.getElementById('input-' + i);
-        const btn = document.getElementById('btn-' + i);
-        const fb = document.getElementById('fb-' + i);
-        const card = document.getElementById('card-' + i);
-        const hint = document.getElementById('hint-' + i);
-        input.value = ''; input.disabled = false;
-        btn.disabled = false;
-        fb.className = 'feedback'; fb.textContent = '';
-        card.className = 'question-card' + (currentFilter !== '전체' && q.period !== currentFilter ? ' hidden' : '');
-        hint.classList.remove('show');
-    });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+function retryGame() {
+    document.getElementById('resultScreen').classList.remove('active');
+    startGame();
 }
 
-function render() {
-    const nav = document.getElementById('periodNav');
-    nav.innerHTML = '<button class="period-btn active" onclick="filterByPeriod(\'전체\')">전체 (' + quizData.length + ')</button>';
-    periods.forEach(p => {
-        const count = quizData.filter(q => q.period === p).length;
-        nav.innerHTML += '<button class="period-btn" onclick="filterByPeriod(\'' + p + '\')">' + p + ' (' + count + ')</button>';
-    });
-
-    const container = document.getElementById('quizContainer');
-    container.innerHTML = '';
-    quizData.forEach((q, i) => {
-        container.innerHTML += '<div class="question-card" id="card-' + i + '">' +
-            '<div class="q-header">' +
-                '<span class="q-number">Q' + (i+1) + '</span>' +
-                '<span class="q-period">' + q.period + '</span>' +
-            '</div>' +
-            '<div class="q-text">' + q.q + '</div>' +
-            '<div class="answer-row">' +
-                '<input type="text" class="answer-input" id="input-' + i + '" placeholder="답을 입력하세요" onkeydown="if(event.key===\'Enter\')checkAnswer(' + i + ')">' +
-                '<button class="submit-btn" id="btn-' + i + '" onclick="checkAnswer(' + i + ')">확인</button>' +
-            '</div>' +
-            '<div class="feedback" id="fb-' + i + '"></div>' +
-            '<button class="hint-btn" onclick="showHint(' + i + ')">힌트 보기</button>' +
-            '<div class="hint-text" id="hint-' + i + '">' + q.hint + '</div>' +
-        '</div>';
-    });
-
-    document.getElementById('total').textContent = quizData.length;
+function goHome() {
+    document.getElementById('resultScreen').classList.remove('active');
+    document.getElementById('gameScreen').classList.remove('active');
+    document.getElementById('startScreen').style.display = 'flex';
 }
 
-render();
+// === Confetti ===
+function spawnConfetti(count) {
+    const wrap = document.getElementById('confettiWrap');
+    const colors = ['#ffd200', '#f7971e', '#4caf50', '#2196f3', '#ff5252', '#e040fb', '#00e5ff'];
+    for (let i = 0; i < count; i++) {
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.style.left = Math.random() * 100 + '%';
+        c.style.top = '-10px';
+        c.style.background = colors[Math.floor(Math.random() * colors.length)];
+        c.style.width = (6 + Math.random() * 8) + 'px';
+        c.style.height = (6 + Math.random() * 8) + 'px';
+        c.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+        c.style.animationDelay = (Math.random() * 0.5) + 's';
+        wrap.appendChild(c);
+        setTimeout(() => c.remove(), 4000);
+    }
+}
+
+initStart();
 </script>
 </body>
 </html>
