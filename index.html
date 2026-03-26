@@ -3,88 +3,136 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>한국사 퀴즈 - 주관식으로 실력 테스트</title>
-<meta name="description" content="한국사 전 범위 주관식 퀴즈. 선사시대부터 현대까지 왕과 업적을 직접 써서 맞춰보세요.">
+<title>이정미 선생님의 한국사 교실</title>
+<meta name="description" content="이정미 선생님의 한국사 퀴즈. 주관식과 OX퀴즈로 재미있게 한국사를 공부해요!">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
   html { font-size: 16px; -webkit-text-size-adjust: 100%; }
   body {
     font-family: 'Noto Sans KR', sans-serif;
-    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 25%, #fbc2eb 55%, #a6c1ee 85%, #e0c3fc 100%);
+    background-attachment: fixed;
     min-height: 100vh; min-height: 100dvh;
-    color: #e0e0e0;
+    color: #3a2d4f;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    position: relative; overflow-x: hidden;
   }
-  .hero { text-align: center; padding: 80px 24px 40px; }
+  body::before {
+    content: '🏛️ 📜 ⚔️ 🏯 👑 🎓 🗺️ 🏔️ 🕊️ ⛵ 🇰🇷';
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    font-size: 26px; word-spacing: 50px; line-height: 110px; letter-spacing: 40px;
+    opacity: 0.06; pointer-events: none; z-index: 0; overflow: hidden;
+    animation: floatBg 50s linear infinite;
+  }
+  @keyframes floatBg { from{transform:translateY(0)} to{transform:translateY(-180px)} }
+  .hero {
+    text-align: center; padding: clamp(50px,10vw,80px) 24px clamp(20px,5vw,40px);
+    position: relative; z-index: 1;
+  }
+  .hero-mascot { font-size: clamp(50px,12vw,70px); animation: bounce 2s infinite; }
+  @keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
   .hero h1 {
-    font-size: clamp(2em, 7vw, 3em); font-weight: 900;
-    background: linear-gradient(90deg, #f7971e, #ffd200, #f7971e);
+    font-size: clamp(1.8em, 6.5vw, 2.8em); font-weight: 900;
+    background: linear-gradient(135deg, #e65c00, #f9d423);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text; margin-bottom: 14px;
+    background-clip: text; margin: 8px 0 6px; line-height: 1.3;
   }
-  .hero p { color: #8899aa; font-size: clamp(0.9em, 3vw, 1.15em); line-height: 1.7; max-width: 550px; margin: 0 auto; padding: 0 8px; }
+  .hero .teacher {
+    font-size: clamp(0.9em,2.5vw,1.05em); color: #8b6aae; font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .hero p {
+    color: #7a6b8a; font-size: clamp(0.85em, 2.5vw, 1em); line-height: 1.7;
+    max-width: 480px; margin: 0 auto; padding: 0 8px;
+  }
   .cards {
     display: flex; flex-direction: column; align-items: center;
-    gap: 20px; max-width: 500px; margin: 36px auto; padding: 0 20px;
+    gap: 16px; max-width: 500px; margin: 0 auto 20px; padding: 0 20px;
+    position: relative; z-index: 1;
   }
   .card {
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 16px; padding: 28px 24px; width: 100%; max-width: 460px;
-    text-decoration: none; transition: all 0.3s ease; cursor: pointer;
+    background: rgba(255,255,255,0.65); border: 2px solid rgba(255,255,255,0.7);
+    border-radius: 20px; padding: 24px 22px; width: 100%; max-width: 460px;
+    text-decoration: none; transition: all 0.3s; cursor: pointer;
     position: relative; overflow: hidden; display: block;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 6px 24px rgba(139,106,174,0.08);
   }
   .card:hover, .card:active {
-    border-color: rgba(247,151,30,0.5);
-    box-shadow: 0 8px 30px rgba(247,151,30,0.12);
-    background: rgba(255,255,255,0.09);
+    border-color: rgba(230,92,0,0.4);
+    box-shadow: 0 10px 36px rgba(230,92,0,0.12);
+    transform: translateY(-2px);
   }
+  .card-icon { font-size: 36px; margin-bottom: 10px; display: block; }
   .card-era {
-    display: inline-block; padding: 5px 14px; border-radius: 14px;
-    font-size: 0.78em; font-weight: 700; margin-bottom: 12px;
+    display: inline-block; padding: 4px 12px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 700; margin-bottom: 10px;
   }
-  .era-all { background: rgba(247,151,30,0.25); color: #f7971e; border: 1px solid rgba(247,151,30,0.4); }
-  .card h2 { color: #f0f0f0; font-size: clamp(1.1em, 4vw, 1.3em); margin-bottom: 8px; font-weight: 700; padding-right: 32px; }
-  .card p { color: #999; font-size: clamp(0.82em, 2.8vw, 0.92em); line-height: 1.6; }
+  .era-orange { background: linear-gradient(135deg,rgba(230,92,0,.12),rgba(249,212,35,.12)); color: #e65c00; border: 1px solid rgba(230,92,0,.25); }
+  .era-purple { background: linear-gradient(135deg,rgba(106,17,203,.1),rgba(37,117,252,.1)); color: #6a11cb; border: 1px solid rgba(106,17,203,.2); }
+  .card h2 { color: #3a2d4f; font-size: clamp(1.05em, 3.5vw, 1.25em); margin-bottom: 8px; font-weight: 800; padding-right: 30px; }
+  .card p { color: #7a6b8a; font-size: clamp(0.8em, 2.5vw, 0.9em); line-height: 1.6; }
   .card-meta {
-    display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; padding-top: 14px;
-    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; padding-top: 12px;
+    border-top: 1px solid rgba(139,106,174,0.1);
   }
-  .meta-item { font-size: 0.8em; color: #777; }
-  .meta-item span { color: #ffd200; font-weight: 600; }
+  .meta-item { font-size: 0.78em; color: #9088a0; }
+  .meta-item span { color: #e65c00; font-weight: 700; }
   .card-arrow {
-    position: absolute; right: 20px; top: 50%;
-    transform: translateY(-50%); font-size: 1.3em; color: rgba(255,255,255,0.15);
+    position: absolute; right: 18px; top: 50%;
+    transform: translateY(-50%); font-size: 1.3em; color: rgba(139,106,174,0.2);
     transition: all 0.3s;
   }
-  .card:hover .card-arrow, .card:active .card-arrow { color: #ffd200; }
-  .footer { text-align: center; padding: 50px 20px 36px; color: #555; font-size: 0.82em; }
+  .card:hover .card-arrow { color: #e65c00; transform: translateY(-50%) translateX(3px); }
+  .footer {
+    text-align: center; padding: 30px 20px 24px; position: relative; z-index: 1;
+    font-size: clamp(0.72em,1.8vw,0.8em); color: #a094b0; line-height: 1.6;
+  }
+  .footer a { color: #8b6aae; text-decoration: none; }
 
   @media (max-width: 480px) {
-    .hero { padding: 56px 16px 28px; }
-    .cards { padding: 0 16px; margin: 28px auto; }
-    .card { padding: 22px 18px; border-radius: 14px; }
-    .footer { padding: 36px 16px 28px; }
+    .hero { padding: 40px 16px 20px; }
+    .cards { padding: 0 14px; }
+    .card { padding: 20px 16px; border-radius: 16px; }
   }
 </style>
 </head>
 <body>
 <div class="hero">
+  <div class="hero-mascot">📚</div>
   <h1>한국사 퀴즈</h1>
-  <p>주관식으로 실력을 테스트해보세요.<br>힌트를 보고 답을 직접 입력하는 방식입니다.</p>
+  <div class="teacher">이정미 선생님의 한국사 교실</div>
+  <p>재미있게 한국사를 공부해요!<br>주관식과 OX퀴즈 중 골라 도전하세요.</p>
 </div>
 <div class="cards">
   <a class="card" href="full-quiz.html">
-    <span class="card-era era-all">전 범위</span>
-    <h2>한국사 전범위 퀴즈</h2>
-    <p>선사시대부터 현대까지, 정리 노트를 바탕으로 한국사 전 시대의 핵심 내용을 확인하세요.</p>
+    <span class="card-icon">✏️</span>
+    <span class="card-era era-orange">주관식 · 전 범위</span>
+    <h2>한국사 주관식 퀴즈</h2>
+    <p>하나의 역사적 사실을 읽고 답을 직접 써보세요. 힌트도 있어요!</p>
     <div class="card-meta">
       <div class="meta-item">문제 수: <span>172문제</span></div>
-      <div class="meta-item">유형: <span>인물 + 사건/제도</span></div>
+      <div class="meta-item">난이도: <span>중~상</span></div>
+    </div>
+    <div class="card-arrow">→</div>
+  </a>
+  <a class="card" href="ox-quiz.html">
+    <span class="card-icon">⭕❌</span>
+    <span class="card-era era-purple">OX퀴즈 · 전 범위</span>
+    <h2>한국사 OX퀴즈</h2>
+    <p>맞으면 O, 틀리면 X! 빠르게 판단하며 역사 상식을 점검해요.</p>
+    <div class="card-meta">
+      <div class="meta-item">문제 수: <span>100+문제</span></div>
+      <div class="meta-item">난이도: <span>초~중</span></div>
     </div>
     <div class="card-arrow">→</div>
   </a>
 </div>
-<div class="footer"><p>한국사 시험 대비 퀴즈 블로그</p></div>
+<div class="footer">
+  <p>&copy; 이정미 선생님의 한국사 교실</p>
+  <p><a href="mailto:rvocalise@kakao.com">rvocalise@kakao.com</a></p>
+</div>
 </body>
 </html>
