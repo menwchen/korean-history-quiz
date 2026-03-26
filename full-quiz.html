@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한국사 전범위 퀴즈 - 주관식</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    min-height: 100vh;
+    color: #e0e0e0;
+  }
+  
+  .header { text-align: center; padding: 36px 20px 12px; }
+  .header h1 {
+    font-size: 2.1em; font-weight: 900;
+    background: linear-gradient(90deg, #f7971e, #ffd200, #f7971e);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+  }
+  .header p { color: #8899aa; font-size: 0.95em; }
+  
+  .score-bar {
+    display: flex; justify-content: center; gap: 24px;
+    padding: 12px; margin: 10px auto; max-width: 600px;
+    background: rgba(255,255,255,0.05); border-radius: 12px;
+  }
+  .score-item { text-align: center; }
+  .score-item .label { font-size: 0.78em; color: #8899aa; }
+  .score-item .value { font-size: 1.4em; font-weight: 700; }
+  .val-q { color: #ffd200; }
+  .val-c { color: #2ecc71; }
+  .val-w { color: #e74c3c; }
+  
+  .progress-bar { max-width: 720px; margin: 0 auto 14px; padding: 0 20px; }
+  .progress-track { height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #f7971e, #ffd200); border-radius: 3px; transition: width 0.4s; }
+  
+  .quiz-container { max-width: 720px; margin: 0 auto 16px; padding: 0 20px; }
+  
+  .era-badge {
+    display: inline-block; padding: 4px 12px; border-radius: 14px;
+    font-size: 0.78em; font-weight: 700; margin-right: 8px; margin-bottom: 10px;
+  }
+  .era-pre { background: rgba(139,90,43,0.3); color: #d4a574; border: 1px solid rgba(139,90,43,0.5); }
+  .era-three { background: rgba(46,134,193,0.3); color: #5dade2; border: 1px solid rgba(46,134,193,0.5); }
+  .era-goryeo { background: rgba(125,60,152,0.3); color: #bb8fce; border: 1px solid rgba(125,60,152,0.5); }
+  .era-joseon { background: rgba(39,174,96,0.3); color: #58d68d; border: 1px solid rgba(39,174,96,0.5); }
+  .era-modern { background: rgba(231,76,60,0.3); color: #ec7063; border: 1px solid rgba(231,76,60,0.5); }
+  .era-contemp { background: rgba(241,196,15,0.3); color: #f4d03f; border: 1px solid rgba(241,196,15,0.5); }
+  
+  .type-badge {
+    display: inline-block; padding: 4px 12px; border-radius: 14px;
+    font-size: 0.78em; font-weight: 700; margin-bottom: 10px;
+  }
+  .type1 { background: rgba(52,152,219,0.25); color: #5dade2; border: 1px solid rgba(52,152,219,0.4); }
+  .type2 { background: rgba(231,76,60,0.25); color: #ec7063; border: 1px solid rgba(231,76,60,0.4); }
+  
+  .question-card {
+    background: rgba(255,255,255,0.06); border-radius: 16px; padding: 24px;
+    margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);
+  }
+  .question-num { font-size: 0.82em; color: #8899aa; margin-bottom: 8px; }
+  .question-text { font-size: 1.1em; font-weight: 500; color: #f0f0f0; margin-bottom: 16px; line-height: 1.75; }
+  
+  .hint-box {
+    font-size: 0.86em; color: #a0a0a0; margin-bottom: 14px;
+    padding: 10px 14px; background: rgba(255,255,255,0.04);
+    border-radius: 8px; border-left: 3px solid rgba(247,151,30,0.4); line-height: 1.6;
+  }
+  
+  .answer-row { display: flex; gap: 10px; }
+  .answer-input {
+    flex: 1; padding: 13px 16px;
+    background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.18);
+    border-radius: 10px; color: #f0f0f0; font-size: 1.05em;
+    font-family: 'Noto Sans KR', sans-serif; outline: none; transition: border-color 0.2s;
+  }
+  .answer-input:focus { border-color: #ffd200; }
+  .answer-input::placeholder { color: #555; }
+  .answer-input:disabled { opacity: 0.55; }
+  
+  .submit-btn {
+    padding: 13px 22px; border: none; border-radius: 10px;
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    color: #1a1a2e; font-size: 1em; font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(247,151,30,0.3); }
+  .submit-btn:disabled { opacity: 0.45; cursor: default; }
+  
+  .result-badge {
+    display: none; margin-top: 13px; padding: 11px 15px;
+    border-radius: 10px; font-size: 0.93em; font-weight: 600;
+  }
+  .result-badge.show { display: block; }
+  .result-badge.cr { background: rgba(46,204,113,0.14); border: 1px solid rgba(46,204,113,0.35); color: #2ecc71; }
+  .result-badge.wr { background: rgba(231,76,60,0.14); border: 1px solid rgba(231,76,60,0.35); color: #ec7063; }
+  
+  .explanation {
+    display: none; margin-top: 11px; padding: 14px;
+    background: rgba(247,151,30,0.08); border-left: 3px solid #f7971e;
+    border-radius: 0 8px 8px 0; font-size: 0.9em; line-height: 1.7; color: #ccc;
+  }
+  .explanation.show { display: block; }
+  
+  .nav-buttons {
+    display: flex; justify-content: center; gap: 14px;
+    max-width: 720px; margin: 0 auto; padding: 0 20px 36px;
+  }
+  .nav-btn {
+    padding: 11px 30px; border-radius: 10px; border: none;
+    font-size: 1em; font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 700; cursor: pointer; transition: all 0.2s;
+  }
+  .nav-btn.primary { background: linear-gradient(135deg, #f7971e, #ffd200); color: #1a1a2e; }
+  .nav-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(247,151,30,0.3); }
+  .nav-btn.secondary { background: rgba(255,255,255,0.1); color: #e0e0e0; }
+  .hidden { display: none !important; }
+  
+  .result-screen { display: none; text-align: center; padding: 50px 20px; max-width: 700px; margin: 0 auto; }
+  .result-screen h2 { font-size: 2em; margin-bottom: 12px; color: #ffd200; }
+  .result-score { font-size: 3.8em; font-weight: 900; margin: 18px 0; }
+  .result-msg { font-size: 1.05em; color: #aaa; margin-bottom: 25px; line-height: 1.6; }
+  
+  .review-section { margin-top: 25px; text-align: left; }
+  .review-section h3 { color: #ffd200; margin-bottom: 14px; }
+  .review-item {
+    background: rgba(255,255,255,0.05); border-radius: 10px;
+    padding: 14px; margin-bottom: 10px; border-left: 4px solid;
+  }
+  .review-item.rc { border-color: #2ecc71; }
+  .review-item.rw { border-color: #e74c3c; }
+  .rq { font-weight: 600; margin-bottom: 5px; font-size: 0.93em; }
+  .ra { font-size: 0.86em; color: #aaa; line-height: 1.5; }
+  .ra span { color: #ffd200; font-weight: 600; }
+  .ra .user-ans { color: #ec7063; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>한국사 전범위 퀴즈</h1>
+  <p>정리 노트 기반 주관식 20문제</p>
+</div>
+
+<div class="score-bar">
+  <div class="score-item"><div class="label">문제</div><div class="value val-q" id="qNum">1/20</div></div>
+  <div class="score-item"><div class="label">정답</div><div class="value val-c" id="cCnt">0</div></div>
+  <div class="score-item"><div class="label">오답</div><div class="value val-w" id="wCnt">0</div></div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-track"><div class="progress-fill" id="pFill" style="width:5%"></div></div>
+</div>
+
+<div class="quiz-container" id="qArea"></div>
+
+<div class="nav-buttons" id="navArea">
+  <button class="nav-btn secondary hidden" id="prevBtn" onclick="prev()">이전</button>
+  <button class="nav-btn primary" id="nextBtn" onclick="next()" style="display:none">다음 문제</button>
+</div>
+
+<div class="result-screen" id="resultScreen">
+  <h2>퀴즈 완료!</h2>
+  <div class="result-score" id="fScore"></div>
+  <div class="result-msg" id="rMsg"></div>
+  <div class="review-section" id="reviewSec"></div>
+  <br>
+  <button class="nav-btn primary" onclick="restart()">다시 풀기</button>
+</div>
+
+<script>
+const Q = [
+  // ===== 유형1: 왕/인물 이름 맞추기 (10문제) =====
+  {
+    type:1, era:'three', eraName:'고구려',
+    q:'영락이라는 독자적 연호를 사용하고, 신라에 침입한 왜를 격퇴했으며, 거란·숙신·후연·동부여 등을 정벌하여 영토를 크게 넓힌 고구려의 왕은 누구입니까?',
+    hint:'"영락"이라는 연호가 새겨진 비석이 유명합니다. 아들이 장수왕입니다.',
+    accepts:['광개토대왕','광개토왕','광개토태왕','담덕'],
+    answer:'광개토대왕',
+    exp:'광개토대왕은 연호 "영락"을 사용하며 사방으로 영토를 확장했습니다. 신라에 침입한 왜를 격퇴하고, 거란·숙신·후연·동부여를 정벌했습니다. 아들 장수왕이 광개토대왕릉비를 세웠습니다.'
+  },
+  {
+    type:1, era:'three', eraName:'백제',
+    q:'수도를 사비로 옮기고 국호를 남부여로 바꾸었으며, 신라 진흥왕과 연합하여 한강 하류를 일시적으로 회복했으나 이후 다시 빼앗긴 백제의 왕은 누구입니까?',
+    hint:'관산성 전투에서 신라군에 의해 전사한 왕입니다.',
+    accepts:['성왕'],
+    answer:'성왕',
+    exp:'성왕은 사비(부여)로 천도하고 국호를 남부여로 바꾸었습니다. 신라 진흥왕과 연합하여 한강 유역을 회복했으나, 진흥왕의 배신으로 한강을 빼앗기고 관산성 전투에서 전사했습니다.'
+  },
+  {
+    type:1, era:'three', eraName:'신라',
+    q:'화랑도를 개편하고, 북한산 순수비를 세웠으며, 대가야를 정복하여 낙동강 유역을 확보한 신라의 왕은 누구입니까?',
+    hint:'한강 유역을 차지하고 각지에 순수비를 세운 왕입니다.',
+    accepts:['진흥왕'],
+    answer:'진흥왕',
+    exp:'진흥왕은 화랑도를 국가적 조직으로 개편하고, 북한산 순수비 등 4개의 순수비를 세웠습니다. 대가야를 정복하고 한강 유역을 차지하여 신라의 전성기를 열었습니다.'
+  },
+  {
+    type:1, era:'joseon', eraName:'조선',
+    q:'집현전을 설치하고, 훈민정음을 창제했으며, 4군 6진을 개척하고, 삼강행실도·칠정산·앙부일구·자격루 등을 만든 조선의 왕은 누구입니까?',
+    hint:'농사직설도 이 왕 때 편찬되었습니다.',
+    accepts:['세종','세종대왕'],
+    answer:'세종',
+    exp:'세종은 집현전을 설치하여 학문을 장려하고, 훈민정음(1443)을 창제했습니다. 4군 6진을 개척하여 북방 영토를 확보했으며, 삼강행실도·칠정산·앙부일구·자격루·측우기 등 과학과 문화 전반에 큰 업적을 남겼습니다.'
+  },
+  {
+    type:1, era:'joseon', eraName:'조선',
+    q:'규장각을 설치하고, 초계문신제와 신해통공을 시행했으며, 장용영을 두고 수원화성을 건설한 조선의 왕은 누구입니까?',
+    hint:'탕평 정치를 계승하고, 아버지 사도세자의 비극으로 유명한 왕입니다.',
+    accepts:['정조'],
+    answer:'정조',
+    exp:'정조는 규장각을 설치하여 학문과 정치를 주도하고, 초계문신제로 신진 관료를 양성했습니다. 신해통공으로 시전 상인의 특권을 줄이고, 장용영(친위부대)을 설치했으며, 수원화성을 건설했습니다.'
+  },
+  {
+    type:1, era:'goryeo', eraName:'고려',
+    q:'전민변정도감을 설치하고, 기철 등 친원파를 숙청했으며, 쌍성총관부를 공격하여 철령 이북 지역을 수복하고, 정방을 폐지한 고려의 왕은 누구입니까?',
+    hint:'반원 자주 정책을 추진한 고려 후기의 왕입니다.',
+    accepts:['공민왕'],
+    answer:'공민왕',
+    exp:'공민왕은 반원 자주 정책을 추진하여 기철 등 친원파를 제거하고, 쌍성총관부를 공격하여 영토를 수복했습니다. 전민변정도감을 설치하여 불법으로 빼앗긴 토지와 노비를 원래 주인에게 돌려주었고, 정방을 폐지했습니다.'
+  },
+  {
+    type:1, era:'joseon', eraName:'조선',
+    q:'위화도 회군을 단행하고, 요동 정벌에 반대했으며, 황산에서 왜구를 물리친 인물로, 조선을 건국한 왕은 누구입니까?',
+    hint:'조선의 제1대 왕으로, 원래 이름은 이성계입니다.',
+    accepts:['태조','이성계','태조 이성계'],
+    answer:'태조 이성계',
+    exp:'이성계는 위화도 회군(1388)으로 정권을 장악한 뒤 조선을 건국(1392)했습니다. 황산 대첩에서 왜구를 크게 물리친 무장 출신이며, 경복궁을 건설하고 한양으로 수도를 옮겼습니다.'
+  },
+  {
+    type:1, era:'modern', eraName:'개항기',
+    q:'운요호 사건을 구실로 조선에 개항을 요구하여 강화도 조약(조일수호조규)을 체결하게 한 사건의 배경에서, 개항 이전 서원을 철폐하고 경복궁을 중건하며 당백전을 발행하고 척화비를 건립한 인물은 누구입니까?',
+    hint:'고종의 아버지로, 통상 수교 거부 정책을 추진했습니다.',
+    accepts:['흥선대원군','대원군'],
+    answer:'흥선대원군',
+    exp:'흥선대원군은 고종의 아버지로 섭정을 하며 왕권 강화 정책을 폈습니다. 서원 철폐, 경복궁 중건, 당백전 발행, 척화비 건립 등을 시행했으며, 병인양요와 신미양요 때 통상 수교 거부 정책을 고수했습니다.'
+  },
+  {
+    type:1, era:'contemp', eraName:'현대',
+    q:'경제개발 5개년 계획을 추진하고, 경부고속도로를 건설했으며, 새마을 운동을 전개하고, 유신헌법을 제정한 대통령은 누구입니까?',
+    hint:'베트남 국군 파견, 3선 개헌, 긴급 조치, 부마항쟁과 관련된 대통령입니다.',
+    accepts:['박정희'],
+    answer:'박정희',
+    exp:'박정희(1963~1979)는 경제개발 5개년 계획으로 수출 100억 달성, 경부고속도로 건설, 새마을 운동을 추진했습니다. 그러나 3선 개헌과 유신헌법으로 장기 집권을 도모했으며, 야간 통행 금지, 긴급 조치 등 권위주의적 통치를 했습니다.'
+  },
+  {
+    type:1, era:'contemp', eraName:'일제시대',
+    q:'상하이 훙커우 공원에서 폭탄을 투척한 독립운동가로, 한인애국단 소속인 이 인물은 누구입니까?',
+    hint:'1932년 일왕 생일 행사장에서 의거를 일으킨 인물입니다.',
+    accepts:['윤봉길'],
+    answer:'윤봉길',
+    exp:'윤봉길은 김구가 조직한 한인애국단 소속으로, 1932년 상하이 훙커우 공원에서 일본군 장성들에게 폭탄을 투척하는 의거를 일으켰습니다. 이 의거는 대한민국 임시정부의 위상을 크게 높이는 계기가 되었습니다.'
+  },
+
+  // ===== 유형2: 업적/제도/사건 맞추기 (10문제) =====
+  {
+    type:2, era:'pre', eraName:'선사시대',
+    q:'신석기 시대를 대표하는 토기의 이름을 쓰세요. 바닥이 뾰족하고 겉면에 빗살 모양의 무늬가 새겨져 있습니다.',
+    hint:'"빗살"과 "무늬"가 들어가는 토기 이름입니다.',
+    accepts:['빗살무늬토기','빗살무늬 토기'],
+    answer:'빗살무늬토기',
+    exp:'신석기 시대의 대표 유물은 빗살무늬토기(빗살문토기)입니다. 빗 모양 도구로 기하학적 무늬를 새긴 것이 특징이며, 바닥이 뾰족한 형태가 많습니다. 가락바퀴와 함께 신석기 시대를 대표하는 유물입니다.'
+  },
+  {
+    type:2, era:'three', eraName:'고구려',
+    q:'고구려 장수왕이 수도를 국내성에서 옮긴 곳은 어디입니까? 또한 장수왕은 이곳으로 천도한 뒤 백제 개로왕을 죽이고 한성을 함락했습니다.',
+    hint:'현재 북한의 수도이기도 한 도시입니다.',
+    accepts:['평양','평양성','평양천도','평양 천도'],
+    answer:'평양',
+    exp:'장수왕은 427년 수도를 평양으로 옮기고 남하 정책을 추진했습니다. 광개토대왕릉비를 건립하고, 백제를 공격하여 한성을 함락하고 개로왕을 전사시켰습니다. 이로 인해 백제는 웅진(공주)으로 천도하게 됩니다.'
+  },
+  {
+    type:2, era:'three', eraName:'신라',
+    q:'신라의 삼국 통일 과정에서, 나당연합군이 백제를 멸망시킨 결정적 전투인 황산벌 전투에서 결사대를 이끌고 싸운 신라의 장군은 누구입니까?',
+    hint:'5천 결사대를 이끌고 계백의 백제군에 맞서 싸운 화랑 출신 장군입니다.',
+    accepts:['관창','계백','김유신'],
+    answer:'관창 (또는 김유신 지휘 하)',
+    exp:'황산벌 전투에서 백제의 계백 장군이 5천 결사대로 맞섰고, 신라 측에서는 16세 화랑 관창이 결사대를 이끌고 돌격하여 전사했습니다. 이에 신라군의 사기가 올라 결국 승리했으며, 김유신이 전체 군을 지휘했습니다.'
+  },
+  {
+    type:2, era:'goryeo', eraName:'고려',
+    q:'거란의 1차 침입 때 외교 담판을 벌여 거란군을 물리치고, 강동 6주를 확보한 고려의 인물은 누구입니까?',
+    hint:'서희의 담판으로 유명합니다. "강동 ○주"를 획득했습니다.',
+    accepts:['서희'],
+    answer:'서희',
+    exp:'993년 거란의 1차 침입 때 서희는 거란 장수 소손녕과 외교 담판을 벌였습니다. "고려는 고구려를 계승한 나라"임을 주장하고, 거란과의 관계 정상화를 조건으로 강동 6주를 획득했습니다.'
+  },
+  {
+    type:2, era:'goryeo', eraName:'고려',
+    q:'고려 시대에 김부식이 편찬한, 고구려·백제·신라 삼국의 역사를 기전체로 서술한 역사서의 이름을 쓰세요.',
+    hint:'기전체로 쓰인 현존하는 우리나라 최고(最古)의 역사서입니다.',
+    accepts:['삼국사기'],
+    answer:'삼국사기',
+    exp:'삼국사기는 김부식이 인종의 명을 받아 1145년에 편찬한 기전체 역사서입니다. 고구려·백제·신라 삼국의 역사를 정리한 것으로, 현존하는 한국 최고의 역사서입니다. 삼국유사(일연)와 함께 삼국시대 연구의 핵심 자료입니다.'
+  },
+  {
+    type:2, era:'joseon', eraName:'조선',
+    q:'조선 시대에 공납(특산물)을 쌀이나 옷감, 동전으로 대신 납부하게 한 세금 제도의 이름을 쓰세요. 김육이 실시를 건의했습니다.',
+    hint:'"대동"이라는 단어가 들어가며, 이 제도 시행으로 "공인"이 등장했습니다.',
+    accepts:['대동법'],
+    answer:'대동법',
+    exp:'대동법은 기존의 공납(지역 특산물 납부)을 쌀·옷감·동전으로 통일하여 납부하게 한 제도입니다. 김육의 건의로 확대 실시되었으며, 이 과정에서 관청에 물품을 조달하는 전문 상인인 "공인"이 등장하게 되었습니다.'
+  },
+  {
+    type:2, era:'joseon', eraName:'조선',
+    q:'임진왜란 때 이순신 장군이 활약한 주요 해전 중, 명량에서 13척의 배로 133척의 왜선을 물리친 해전의 이름을 쓰세요.',
+    hint:'"명량"이 들어가는 해전으로, "울돌목"이라고도 불리는 좁은 해협에서 벌어졌습니다.',
+    accepts:['명량해전','명량대첩','명량 해전','명량 대첩'],
+    answer:'명량해전(명량대첩)',
+    exp:'명량해전(1597)은 이순신이 13척의 배로 일본 수군 133척을 격파한 전투입니다. 좁은 울돌목(명량)의 빠른 조류를 이용한 전략으로 대승을 거두었습니다. 임진왜란의 주요 해전으로는 한산도 대첩, 명량해전 등이 있습니다.'
+  },
+  {
+    type:2, era:'modern', eraName:'개항기',
+    q:'1894년 전봉준이 이끈 농민 봉기로, 전주화약·집강소 설치·우금치 전투 등이 벌어진 이 운동의 이름을 쓰세요.',
+    hint:'"동학"이라는 종교와 관련된 농민 운동입니다.',
+    accepts:['동학농민운동','동학농민혁명','동학 농민 운동','동학농민봉기'],
+    answer:'동학농민운동',
+    exp:'동학농민운동(1894)은 전봉준 등이 이끈 대규모 농민 봉기입니다. 전주화약 체결, 집강소 설치, 우금치 전투 등이 벌어졌으며, 관련 기구로 군국기무처가 있습니다. 이후 갑오개혁(과거제 폐지, 신분제 철폐)의 계기가 되었습니다.'
+  },
+  {
+    type:2, era:'contemp', eraName:'현대',
+    q:'1987년 전두환 정부 시기에 호헌철폐를 요구하며 일어난 민주화 운동으로, 4.13 호헌 조치에 반발하여 전국적으로 확산되었고, 그 결과 5년 단임의 대통령 직선제가 도입된 이 사건의 이름을 쓰세요.',
+    hint:'이한열, 박종철 등의 희생이 있었으며, "6월"이 들어가는 사건입니다.',
+    accepts:['6월민주항쟁','6월 민주항쟁','6월항쟁','6월 항쟁','6월민주화운동','6월 민주화 운동'],
+    answer:'6월 민주항쟁',
+    exp:'6월 민주항쟁(1987)은 전두환 정부의 4.13 호헌 조치에 반발하여 전국적으로 벌어진 민주화 운동입니다. 호헌철폐, 독재타도를 외치며 이한열·박종철의 희생이 있었고, 그 결과 5년 단임의 대통령 직선제를 쟁취했습니다.'
+  },
+  {
+    type:2, era:'contemp', eraName:'현대',
+    q:'3.15 부정선거에 항의하여 일어난 시민 혁명으로, 결국 이승만 대통령이 하야(하야)한 사건의 이름을 쓰세요.',
+    hint:'1960년 4월 19일에 절정에 달한 혁명입니다.',
+    accepts:['4.19혁명','4·19혁명','4.19 혁명','419혁명','4월혁명','4월 혁명','4.19','사일구혁명','4.19의거'],
+    answer:'4.19 혁명',
+    exp:'4.19 혁명(1960)은 이승만 정부의 3.15 부정선거에 항의하여 학생과 시민이 일으킨 민주화 혁명입니다. 전국적인 시위가 확산되어 결국 이승만 대통령이 하야했으며, 우리나라 민주화 운동의 출발점으로 평가됩니다.'
+  }
+];
+
+let cur=0, cc=0, ww=0;
+let ans=Array(Q.length).fill(false);
+let uA=Array(Q.length).fill('');
+let isC=Array(Q.length).fill(false);
+
+function norm(s){return s.replace(/\s+/g,'').replace(/[·\-()（）]/g,'').toLowerCase();}
+
+function render(i){
+  const q=Q[i], a=document.getElementById('qArea');
+  const eraMap={pre:'선사/고조선',three:'삼국시대',goryeo:'고려',joseon:'조선',modern:'개항기',contemp:'현대'};
+  const eraCls={pre:'era-pre',three:'era-three',goryeo:'era-goryeo',joseon:'era-joseon',modern:'era-modern',contemp:'era-contemp'};
+  const typeCls=q.type===1?'type1':'type2';
+  const typeName=q.type===1?'유형1 | 왕/인물 이름':'유형2 | 업적/사건';
+  
+  let res='';
+  if(ans[i]){
+    res=isC[i]
+      ?'<div class="result-badge cr show">정답입니다!</div>'
+      :'<div class="result-badge wr show">오답입니다. 정답: <strong>'+q.answer+'</strong></div>';
+  }
+  
+  a.innerHTML=
+    '<div class="question-card">'+
+    '<span class="era-badge '+eraCls[q.era]+'">'+q.eraName+'</span>'+
+    '<span class="type-badge '+typeCls+'">'+typeName+'</span>'+
+    '<div class="question-num">문제 '+(i+1)+' / '+Q.length+'</div>'+
+    '<div class="question-text">'+q.q+'</div>'+
+    '<div class="hint-box">'+q.hint+'</div>'+
+    '<div class="answer-row">'+
+    '<input type="text" class="answer-input" id="aIn" placeholder="답을 입력하세요" value="'+(uA[i]||'')+'" '+(ans[i]?'disabled':'')+' autocomplete="off">'+
+    '<button class="submit-btn" id="sBtn" onclick="check('+i+')" '+(ans[i]?'disabled':'')+'>확인</button>'+
+    '</div>'+
+    res+
+    '<div class="explanation '+(ans[i]?'show':'')+'">'+q.exp+'</div>'+
+    '</div>';
+  
+  document.getElementById('qNum').textContent=(i+1)+'/'+Q.length;
+  document.getElementById('pFill').style.width=(((i+1)/Q.length)*100)+'%';
+  document.getElementById('prevBtn').classList.toggle('hidden',i===0);
+  var nb=document.getElementById('nextBtn');
+  nb.style.display=ans[i]?'':'none';
+  nb.textContent=i===Q.length-1?'결과 보기':'다음 문제';
+  
+  if(!ans[i]) setTimeout(function(){var inp=document.getElementById('aIn');if(inp)inp.focus();},80);
+  setTimeout(function(){var inp=document.getElementById('aIn');if(inp)inp.onkeydown=function(e){if(e.key==='Enter'&&!ans[i])check(i);};},50);
+}
+
+function check(i){
+  if(ans[i])return;
+  var inp=document.getElementById('aIn'), v=inp.value.trim();
+  if(!v){inp.focus();return;}
+  ans[i]=true; uA[i]=v;
+  var nv=norm(v), match=Q[i].accepts.some(function(a){return norm(a)===nv;});
+  if(match){cc++;isC[i]=true;}else{ww++;isC[i]=false;}
+  document.getElementById('cCnt').textContent=cc;
+  document.getElementById('wCnt').textContent=ww;
+  render(i);
+}
+
+function next(){if(cur===Q.length-1){showResult();return;}cur++;render(cur);}
+function prev(){if(cur>0){cur--;render(cur);}}
+
+function showResult(){
+  document.getElementById('qArea').classList.add('hidden');
+  document.getElementById('navArea').classList.add('hidden');
+  var rs=document.getElementById('resultScreen');
+  rs.style.display='block';
+  document.getElementById('fScore').textContent=cc+' / '+Q.length;
+  var p=(cc/Q.length)*100, m='';
+  if(p===100)m='만점! 한국사 마스터입니다!';
+  else if(p>=85)m='훌륭합니다! 거의 완벽해요. 틀린 부분만 복습하면 됩니다.';
+  else if(p>=70)m='좋아요! 대부분 잘 알고 있어요. 아래 오답 노트를 확인해보세요.';
+  else if(p>=50)m='절반 이상 맞았어요. 시대별로 정리하며 복습해보세요.';
+  else m='아직 공부가 더 필요해요. 정리 노트를 다시 꼼꼼히 읽어보세요!';
+  document.getElementById('rMsg').textContent=m;
+  
+  var rv=document.getElementById('reviewSec'),h='<h3>오답 노트</h3>',hw=false;
+  for(var i=0;i<Q.length;i++){
+    if(!isC[i]){
+      hw=true;
+      h+='<div class="review-item rw">'+
+        '<div class="rq">Q'+(i+1)+'. '+Q[i].q.replace(/<[^>]*>/g,'').substring(0,80)+'...</div>'+
+        '<div class="ra">내 답: <span class="user-ans">'+(uA[i]||'(미입력)')+'</span> → 정답: <span>'+Q[i].answer+'</span></div>'+
+        '<div class="ra" style="margin-top:5px;font-size:0.83em;">'+Q[i].exp+'</div></div>';
+    }
+  }
+  if(!hw)h+='<p style="color:#2ecc71;font-size:1.1em;">모든 문제를 맞았습니다! 대단해요!</p>';
+  rv.innerHTML=h;
+}
+
+function restart(){
+  cur=0;cc=0;ww=0;
+  ans=Array(Q.length).fill(false);uA=Array(Q.length).fill('');isC=Array(Q.length).fill(false);
+  document.getElementById('cCnt').textContent='0';
+  document.getElementById('wCnt').textContent='0';
+  document.getElementById('qArea').classList.remove('hidden');
+  document.getElementById('navArea').classList.remove('hidden');
+  document.getElementById('resultScreen').style.display='none';
+  render(0);
+}
+
+render(0);
+</script>
+</body>
+</html>

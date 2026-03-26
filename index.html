@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한국사 퀴즈 - 주관식으로 실력 테스트</title>
+<meta name="description" content="한국사 전 범위 주관식 퀴즈. 고려시대, 조선시대, 근현대사까지 왕과 업적을 직접 써서 맞춰보세요.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    min-height: 100vh; color: #e0e0e0;
+  }
+
+  .hero {
+    text-align: center; padding: 80px 20px 40px;
+  }
+  .hero h1 {
+    font-size: 3em; font-weight: 900;
+    background: linear-gradient(90deg, #f7971e, #ffd200, #f7971e);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+  }
+  .hero p { color: #8899aa; font-size: 1.15em; line-height: 1.7; max-width: 550px; margin: 0 auto; }
+
+  .cards {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 24px; max-width: 900px; margin: 40px auto; padding: 0 20px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px; padding: 32px 28px;
+    width: 380px; text-decoration: none;
+    transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden;
+  }
+  .card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(247,151,30,0.5);
+    box-shadow: 0 12px 40px rgba(247,151,30,0.15);
+    background: rgba(255,255,255,0.09);
+  }
+
+  .card-era {
+    display: inline-block; padding: 5px 14px; border-radius: 16px;
+    font-size: 0.8em; font-weight: 700; margin-bottom: 14px;
+  }
+  .era-goryeo { background: rgba(125,60,152,0.3); color: #bb8fce; border: 1px solid rgba(125,60,152,0.5); }
+  .era-all { background: rgba(247,151,30,0.25); color: #f7971e; border: 1px solid rgba(247,151,30,0.4); }
+
+  .card h2 { color: #f0f0f0; font-size: 1.35em; margin-bottom: 10px; font-weight: 700; }
+  .card p { color: #999; font-size: 0.92em; line-height: 1.6; }
+
+  .card-meta {
+    display: flex; gap: 16px; margin-top: 18px; padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .meta-item { font-size: 0.82em; color: #777; }
+  .meta-item span { color: #ffd200; font-weight: 600; }
+
+  .card-arrow {
+    position: absolute; right: 24px; top: 50%;
+    transform: translateY(-50%); font-size: 1.4em; color: rgba(255,255,255,0.15);
+    transition: all 0.3s;
+  }
+  .card:hover .card-arrow { color: #ffd200; right: 20px; }
+
+  .footer {
+    text-align: center; padding: 60px 20px 40px;
+    color: #555; font-size: 0.85em;
+  }
+  .footer a { color: #777; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>한국사 퀴즈</h1>
+  <p>주관식으로 실력을 테스트해보세요.<br>힌트를 보고 답을 직접 입력하는 방식입니다.</p>
+</div>
+
+<div class="cards">
+  <a class="card" href="goryeo-quiz.html">
+    <span class="card-era era-goryeo">고려시대</span>
+    <h2>고려시대 왕 퀴즈</h2>
+    <p>태조 왕건, 광종, 성종 등 고려시대 왕의 이름과 업적을 사진을 보고 맞춰보세요.</p>
+    <div class="card-meta">
+      <div class="meta-item">문제 수: <span>10문제</span></div>
+      <div class="meta-item">유형: <span>왕 이름 + 업적</span></div>
+    </div>
+    <div class="card-arrow">→</div>
+  </a>
+
+  <a class="card" href="full-quiz.html">
+    <span class="card-era era-all">전 범위</span>
+    <h2>한국사 전범위 퀴즈</h2>
+    <p>선사시대부터 현대까지, 정리 노트를 바탕으로 한국사 전 시대의 핵심 내용을 확인하세요.</p>
+    <div class="card-meta">
+      <div class="meta-item">문제 수: <span>20문제</span></div>
+      <div class="meta-item">유형: <span>인물 + 사건/제도</span></div>
+    </div>
+    <div class="card-arrow">→</div>
+  </a>
+</div>
+
+<div class="footer">
+  <p>한국사 시험 대비 퀴즈 블로그</p>
+</div>
+
+</body>
+</html>
