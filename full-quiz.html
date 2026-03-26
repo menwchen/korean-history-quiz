@@ -1,482 +1,647 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>한국사 전범위 퀴즈 - 주관식</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-  
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html { font-size: 16px; -webkit-text-size-adjust: 100%; }
-
-  body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-    min-height: 100vh; min-height: 100dvh;
-    color: #e0e0e0;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  }
-
-  .header { text-align: center; padding: 36px 20px 12px; }
-  .header h1 {
-    font-size: clamp(1.6em, 5.5vw, 2.1em); font-weight: 900;
-    background: linear-gradient(90deg, #f7971e, #ffd200, #f7971e);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text; margin-bottom: 6px;
-  }
-  .header p { color: #8899aa; font-size: clamp(0.82em, 2.8vw, 0.95em); }
-  
-  .score-bar {
-    display: flex; justify-content: center; gap: clamp(16px, 4vw, 24px);
-    padding: 12px 16px; margin: 10px 16px; max-width: 600px;
-    background: rgba(255,255,255,0.05); border-radius: 12px;
-  }
-  @media (min-width: 640px) { .score-bar { margin: 10px auto; } }
-  .score-item { text-align: center; }
-  .score-item .label { font-size: 0.78em; color: #8899aa; }
-  .score-item .value { font-size: 1.4em; font-weight: 700; }
-  .val-q { color: #ffd200; }
-  .val-c { color: #2ecc71; }
-  .val-w { color: #e74c3c; }
-  
-  .progress-bar { max-width: 720px; margin: 0 auto 14px; padding: 0 20px; }
-  .progress-track { height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, #f7971e, #ffd200); border-radius: 3px; transition: width 0.4s; }
-  
-  .quiz-container { max-width: 720px; margin: 0 auto 16px; padding: 0 20px; }
-  
-  .era-badge {
-    display: inline-block; padding: 4px 12px; border-radius: 14px;
-    font-size: 0.78em; font-weight: 700; margin-right: 8px; margin-bottom: 10px;
-  }
-  .era-pre { background: rgba(139,90,43,0.3); color: #d4a574; border: 1px solid rgba(139,90,43,0.5); }
-  .era-three { background: rgba(46,134,193,0.3); color: #5dade2; border: 1px solid rgba(46,134,193,0.5); }
-  .era-goryeo { background: rgba(125,60,152,0.3); color: #bb8fce; border: 1px solid rgba(125,60,152,0.5); }
-  .era-joseon { background: rgba(39,174,96,0.3); color: #58d68d; border: 1px solid rgba(39,174,96,0.5); }
-  .era-modern { background: rgba(231,76,60,0.3); color: #ec7063; border: 1px solid rgba(231,76,60,0.5); }
-  .era-contemp { background: rgba(241,196,15,0.3); color: #f4d03f; border: 1px solid rgba(241,196,15,0.5); }
-  
-  .type-badge {
-    display: inline-block; padding: 4px 12px; border-radius: 14px;
-    font-size: 0.78em; font-weight: 700; margin-bottom: 10px;
-  }
-  .type1 { background: rgba(52,152,219,0.25); color: #5dade2; border: 1px solid rgba(52,152,219,0.4); }
-  .type2 { background: rgba(231,76,60,0.25); color: #ec7063; border: 1px solid rgba(231,76,60,0.4); }
-  
-  .question-card {
-    background: rgba(255,255,255,0.06); border-radius: 14px; padding: clamp(18px, 4vw, 24px);
-    margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);
-  }
-  .question-num { font-size: 0.82em; color: #8899aa; margin-bottom: 8px; }
-  .question-text { font-size: clamp(0.95em, 3vw, 1.1em); font-weight: 500; color: #f0f0f0; margin-bottom: 14px; line-height: 1.75; }
-  
-  .hint-box {
-    font-size: 0.86em; color: #a0a0a0; margin-bottom: 14px;
-    padding: 10px 14px; background: rgba(255,255,255,0.04);
-    border-radius: 8px; border-left: 3px solid rgba(247,151,30,0.4); line-height: 1.6;
-  }
-  
-  .answer-row { display: flex; gap: 8px; }
-  .answer-input {
-    flex: 1; min-width: 0; padding: 12px 14px;
-    background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.18);
-    border-radius: 10px; color: #f0f0f0; font-size: 16px;
-    font-family: 'Noto Sans KR', sans-serif; outline: none; transition: border-color 0.2s;
-    -webkit-appearance: none; appearance: none;
-  }
-  .answer-input:focus { border-color: #ffd200; }
-  .answer-input::placeholder { color: #555; }
-  .answer-input:disabled { opacity: 0.55; }
-  
-  .submit-btn {
-    padding: 12px 18px; border: none; border-radius: 10px;
-    background: linear-gradient(135deg, #f7971e, #ffd200);
-    color: #1a1a2e; font-size: 0.95em; font-weight: 700;
-    font-family: 'Noto Sans KR', sans-serif; cursor: pointer;
-    transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
-  }
-  .submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(247,151,30,0.3); }
-  .submit-btn:disabled { opacity: 0.45; cursor: default; }
-  
-  .result-badge {
-    display: none; margin-top: 13px; padding: 11px 15px;
-    border-radius: 10px; font-size: 0.93em; font-weight: 600;
-  }
-  .result-badge.show { display: block; }
-  .result-badge.cr { background: rgba(46,204,113,0.14); border: 1px solid rgba(46,204,113,0.35); color: #2ecc71; }
-  .result-badge.wr { background: rgba(231,76,60,0.14); border: 1px solid rgba(231,76,60,0.35); color: #ec7063; }
-  
-  .explanation {
-    display: none; margin-top: 11px; padding: 14px;
-    background: rgba(247,151,30,0.08); border-left: 3px solid #f7971e;
-    border-radius: 0 8px 8px 0; font-size: 0.9em; line-height: 1.7; color: #ccc;
-  }
-  .explanation.show { display: block; }
-  
-  .nav-buttons {
-    display: flex; justify-content: center; gap: 12px;
-    max-width: 720px; margin: 0 auto; padding: 0 16px 36px;
-  }
-  .nav-btn {
-    padding: 11px 24px; border-radius: 10px; border: none;
-    font-size: 0.95em; font-family: 'Noto Sans KR', sans-serif;
-    font-weight: 700; cursor: pointer; transition: all 0.2s;
-  }
-  .nav-btn.primary { background: linear-gradient(135deg, #f7971e, #ffd200); color: #1a1a2e; }
-  .nav-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(247,151,30,0.3); }
-  .nav-btn.secondary { background: rgba(255,255,255,0.1); color: #e0e0e0; }
-  .hidden { display: none !important; }
-
-  .result-screen { display: none; text-align: center; padding: 40px 16px; max-width: 700px; margin: 0 auto; }
-  .result-screen h2 { font-size: clamp(1.5em, 5vw, 2em); margin-bottom: 12px; color: #ffd200; }
-  .result-score { font-size: clamp(2.8em, 10vw, 3.8em); font-weight: 900; margin: 16px 0; }
-  .result-msg { font-size: clamp(0.9em, 3vw, 1.05em); color: #aaa; margin-bottom: 25px; line-height: 1.6; }
-  
-  .review-section { margin-top: 25px; text-align: left; }
-  .review-section h3 { color: #ffd200; margin-bottom: 14px; }
-  .review-item {
-    background: rgba(255,255,255,0.05); border-radius: 10px;
-    padding: 14px; margin-bottom: 10px; border-left: 4px solid;
-  }
-  .review-item.rc { border-color: #2ecc71; }
-  .review-item.rw { border-color: #e74c3c; }
-  .rq { font-weight: 600; margin-bottom: 5px; font-size: 0.93em; }
-  .ra { font-size: 0.86em; color: #aaa; line-height: 1.5; }
-  .ra span { color: #ffd200; font-weight: 600; }
-  .ra .user-ans { color: #ec7063; }
-
-  /* 모바일 반응형 */
-  @media (max-width: 480px) {
-    .header { padding: 28px 16px 10px; }
-    .quiz-container { padding: 0 12px; }
-    .progress-bar { padding: 0 12px; }
-    .question-card { padding: 16px 14px; border-radius: 12px; }
-    .era-badge, .type-badge { font-size: 0.72em; padding: 3px 10px; margin-bottom: 8px; }
-    .hint-box { padding: 8px 12px; font-size: 0.82em; }
-    .answer-row { gap: 6px; }
-    .answer-input { padding: 11px 12px; border-radius: 8px; }
-    .submit-btn { padding: 11px 14px; font-size: 0.88em; border-radius: 8px; }
-    .result-badge { font-size: 0.85em; padding: 9px 12px; }
-    .explanation { padding: 12px; font-size: 0.84em; }
-    .nav-buttons { padding: 0 12px 28px; gap: 10px; }
-    .nav-btn { padding: 10px 20px; font-size: 0.9em; }
-    .review-item { padding: 12px; }
-    .rq { font-size: 0.86em; }
-    .ra { font-size: 0.8em; }
-  }
-
-  /* 키보드 올라올 때 레이아웃 보정 */
-  @media (max-height: 500px) and (max-width: 480px) {
-    .header { padding: 12px 16px 6px; }
-    .header h1 { font-size: 1.3em; }
-    .score-bar { padding: 8px; margin: 4px 12px; }
-    .score-item .value { font-size: 1.1em; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>한국사 주관식 퀴즈 (100문항+)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #e0e0e0;
+            min-height: 100dvh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: clamp(12px, 3vw, 30px);
+        }
+        header {
+            text-align: center;
+            padding: clamp(15px, 4vw, 30px) 0;
+        }
+        header h1 {
+            font-size: clamp(1.4em, 5vw, 2em);
+            background: linear-gradient(to right, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .score-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 12px;
+            padding: clamp(10px, 2vw, 16px);
+            margin-bottom: 16px;
+            font-size: clamp(0.85em, 2.5vw, 1em);
+        }
+        .progress-text { color: #aaa; }
+        .score-text { color: #ffd200; font-weight: bold; }
+        .period-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .period-btn {
+            background: rgba(255,255,255,0.08);
+            color: #ccc;
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: clamp(0.75em, 2.2vw, 0.85em);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .period-btn:hover, .period-btn.active {
+            background: rgba(255,215,0,0.15);
+            color: #ffd200;
+            border-color: #ffd200;
+        }
+        .question-card {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: clamp(14px, 3vw, 22px);
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+        .question-card.correct {
+            border-color: #4caf50;
+            background: rgba(76,175,80,0.08);
+        }
+        .question-card.wrong {
+            border-color: #ff5252;
+            background: rgba(255,82,82,0.08);
+        }
+        .question-card.hidden { display: none; }
+        .q-header {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .q-number {
+            font-size: clamp(0.75em, 2vw, 0.85em);
+            color: #888;
+            white-space: nowrap;
+        }
+        .q-period {
+            font-size: clamp(0.65em, 1.8vw, 0.75em);
+            background: rgba(255,215,0,0.12);
+            color: #ffd200;
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+        .q-text {
+            font-size: clamp(0.95em, 2.8vw, 1.1em);
+            line-height: 1.6;
+            margin-bottom: 12px;
+            color: #eee;
+            word-break: keep-all;
+        }
+        .answer-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .answer-input {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            font-size: 16px;
+            -webkit-appearance: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .answer-input:focus {
+            border-color: #ffd200;
+        }
+        .answer-input:disabled {
+            opacity: 0.6;
+        }
+        .submit-btn {
+            flex-shrink: 0;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            color: #1a1a2e;
+            font-weight: bold;
+            font-size: clamp(0.85em, 2.5vw, 0.95em);
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .submit-btn:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+        .feedback {
+            margin-top: 8px;
+            font-size: clamp(0.82em, 2.3vw, 0.92em);
+            display: none;
+        }
+        .feedback.show { display: block; }
+        .feedback.correct-fb { color: #4caf50; }
+        .feedback.wrong-fb { color: #ff5252; }
+        .hint-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: clamp(0.75em, 2vw, 0.82em);
+            cursor: pointer;
+            margin-top: 6px;
+            text-decoration: underline;
+        }
+        .hint-btn:hover { color: #ffd200; }
+        .hint-text {
+            font-size: clamp(0.78em, 2.1vw, 0.85em);
+            color: #aaa;
+            margin-top: 4px;
+            display: none;
+        }
+        .hint-text.show { display: block; }
+        .bottom-bar {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .reset-btn {
+            padding: 14px 36px;
+            border-radius: 12px;
+            border: 2px solid #ffd200;
+            background: transparent;
+            color: #ffd200;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .reset-btn:hover {
+            background: rgba(255,215,0,0.1);
+        }
+        .result-summary {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            margin: 20px 0;
+            background: rgba(255,255,255,0.06);
+            border-radius: 14px;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+        .result-summary h2 {
+            font-size: clamp(1.3em, 4vw, 1.8em);
+            color: #ffd200;
+            margin-bottom: 10px;
+        }
+        .result-summary .big-score {
+            font-size: clamp(2em, 7vw, 3em);
+            font-weight: bold;
+            color: #fff;
+        }
+        .result-summary .grade {
+            font-size: clamp(1em, 3vw, 1.3em);
+            margin-top: 8px;
+        }
+        @media (max-width: 480px) {
+            .container { padding: 10px; }
+            .question-card { padding: 12px; }
+            .answer-row { gap: 6px; }
+            .submit-btn { padding: 10px 14px; }
+        }
+        @media (max-height: 500px) and (max-width: 700px) {
+            header { padding: 8px 0; }
+            .score-bar { padding: 8px; margin-bottom: 8px; }
+            .question-card { padding: 10px; margin-bottom: 8px; }
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <header>
+        <h1>한국사 주관식 퀴즈</h1>
+        <p style="color:#aaa; margin-top:6px; font-size:clamp(0.8em,2.3vw,0.95em);">선사시대부터 현대까지 — 하나의 사실, 하나의 답</p>
+    </header>
 
-<div class="header">
-  <h1>한국사 전범위 퀴즈</h1>
-  <p>정리 노트 기반 주관식 20문제</p>
-</div>
+    <div class="score-bar">
+        <span class="progress-text">진행: <span id="answered">0</span> / <span id="total">0</span></span>
+        <span class="score-text">정답: <span id="score">0</span>점</span>
+    </div>
 
-<div class="score-bar">
-  <div class="score-item"><div class="label">문제</div><div class="value val-q" id="qNum">1/20</div></div>
-  <div class="score-item"><div class="label">정답</div><div class="value val-c" id="cCnt">0</div></div>
-  <div class="score-item"><div class="label">오답</div><div class="value val-w" id="wCnt">0</div></div>
-</div>
+    <div class="period-nav" id="periodNav"></div>
 
-<div class="progress-bar">
-  <div class="progress-track"><div class="progress-fill" id="pFill" style="width:5%"></div></div>
-</div>
+    <div id="quizContainer"></div>
 
-<div class="quiz-container" id="qArea"></div>
+    <div class="result-summary" id="resultSummary">
+        <h2>퀴즈 완료!</h2>
+        <div class="big-score"><span id="finalScore">0</span> / <span id="finalTotal">0</span></div>
+        <div class="grade" id="grade"></div>
+    </div>
 
-<div class="nav-buttons" id="navArea">
-  <button class="nav-btn secondary hidden" id="prevBtn" onclick="prev()">이전</button>
-  <button class="nav-btn primary" id="nextBtn" onclick="next()" style="display:none">다음 문제</button>
-</div>
-
-<div class="result-screen" id="resultScreen">
-  <h2>퀴즈 완료!</h2>
-  <div class="result-score" id="fScore"></div>
-  <div class="result-msg" id="rMsg"></div>
-  <div class="review-section" id="reviewSec"></div>
-  <br>
-  <button class="nav-btn primary" onclick="restart()">다시 풀기</button>
+    <div class="bottom-bar">
+        <button class="reset-btn" onclick="resetQuiz()">다시 풀기</button>
+    </div>
 </div>
 
 <script>
-const Q = [
-  // ===== 유형1: 왕/인물 이름 맞추기 (10문제) =====
-  {
-    type:1, era:'three', eraName:'고구려',
-    q:'영락이라는 독자적 연호를 사용하고, 신라에 침입한 왜를 격퇴했으며, 거란·숙신·후연·동부여 등을 정벌하여 영토를 크게 넓힌 고구려의 왕은 누구입니까?',
-    hint:'"영락"이라는 연호가 새겨진 비석이 유명합니다. 아들이 장수왕입니다.',
-    accepts:['광개토대왕','광개토왕','광개토태왕','담덕'],
-    answer:'광개토대왕',
-    exp:'광개토대왕은 연호 "영락"을 사용하며 사방으로 영토를 확장했습니다. 신라에 침입한 왜를 격퇴하고, 거란·숙신·후연·동부여를 정벌했습니다. 아들 장수왕이 광개토대왕릉비를 세웠습니다.'
-  },
-  {
-    type:1, era:'three', eraName:'백제',
-    q:'수도를 사비로 옮기고 국호를 남부여로 바꾸었으며, 신라 진흥왕과 연합하여 한강 하류를 일시적으로 회복했으나 이후 다시 빼앗긴 백제의 왕은 누구입니까?',
-    hint:'관산성 전투에서 신라군에 의해 전사한 왕입니다.',
-    accepts:['성왕'],
-    answer:'성왕',
-    exp:'성왕은 사비(부여)로 천도하고 국호를 남부여로 바꾸었습니다. 신라 진흥왕과 연합하여 한강 유역을 회복했으나, 진흥왕의 배신으로 한강을 빼앗기고 관산성 전투에서 전사했습니다.'
-  },
-  {
-    type:1, era:'three', eraName:'신라',
-    q:'화랑도를 개편하고, 북한산 순수비를 세웠으며, 대가야를 정복하여 낙동강 유역을 확보한 신라의 왕은 누구입니까?',
-    hint:'한강 유역을 차지하고 각지에 순수비를 세운 왕입니다.',
-    accepts:['진흥왕'],
-    answer:'진흥왕',
-    exp:'진흥왕은 화랑도를 국가적 조직으로 개편하고, 북한산 순수비 등 4개의 순수비를 세웠습니다. 대가야를 정복하고 한강 유역을 차지하여 신라의 전성기를 열었습니다.'
-  },
-  {
-    type:1, era:'joseon', eraName:'조선',
-    q:'집현전을 설치하고, 훈민정음을 창제했으며, 4군 6진을 개척하고, 삼강행실도·칠정산·앙부일구·자격루 등을 만든 조선의 왕은 누구입니까?',
-    hint:'농사직설도 이 왕 때 편찬되었습니다.',
-    accepts:['세종','세종대왕'],
-    answer:'세종',
-    exp:'세종은 집현전을 설치하여 학문을 장려하고, 훈민정음(1443)을 창제했습니다. 4군 6진을 개척하여 북방 영토를 확보했으며, 삼강행실도·칠정산·앙부일구·자격루·측우기 등 과학과 문화 전반에 큰 업적을 남겼습니다.'
-  },
-  {
-    type:1, era:'joseon', eraName:'조선',
-    q:'규장각을 설치하고, 초계문신제와 신해통공을 시행했으며, 장용영을 두고 수원화성을 건설한 조선의 왕은 누구입니까?',
-    hint:'탕평 정치를 계승하고, 아버지 사도세자의 비극으로 유명한 왕입니다.',
-    accepts:['정조'],
-    answer:'정조',
-    exp:'정조는 규장각을 설치하여 학문과 정치를 주도하고, 초계문신제로 신진 관료를 양성했습니다. 신해통공으로 시전 상인의 특권을 줄이고, 장용영(친위부대)을 설치했으며, 수원화성을 건설했습니다.'
-  },
-  {
-    type:1, era:'goryeo', eraName:'고려',
-    q:'전민변정도감을 설치하고, 기철 등 친원파를 숙청했으며, 쌍성총관부를 공격하여 철령 이북 지역을 수복하고, 정방을 폐지한 고려의 왕은 누구입니까?',
-    hint:'반원 자주 정책을 추진한 고려 후기의 왕입니다.',
-    accepts:['공민왕'],
-    answer:'공민왕',
-    exp:'공민왕은 반원 자주 정책을 추진하여 기철 등 친원파를 제거하고, 쌍성총관부를 공격하여 영토를 수복했습니다. 전민변정도감을 설치하여 불법으로 빼앗긴 토지와 노비를 원래 주인에게 돌려주었고, 정방을 폐지했습니다.'
-  },
-  {
-    type:1, era:'joseon', eraName:'조선',
-    q:'위화도 회군을 단행하고, 요동 정벌에 반대했으며, 황산에서 왜구를 물리친 인물로, 조선을 건국한 왕은 누구입니까?',
-    hint:'조선의 제1대 왕으로, 원래 이름은 이성계입니다.',
-    accepts:['태조','이성계','태조 이성계'],
-    answer:'태조 이성계',
-    exp:'이성계는 위화도 회군(1388)으로 정권을 장악한 뒤 조선을 건국(1392)했습니다. 황산 대첩에서 왜구를 크게 물리친 무장 출신이며, 경복궁을 건설하고 한양으로 수도를 옮겼습니다.'
-  },
-  {
-    type:1, era:'modern', eraName:'개항기',
-    q:'운요호 사건을 구실로 조선에 개항을 요구하여 강화도 조약(조일수호조규)을 체결하게 한 사건의 배경에서, 개항 이전 서원을 철폐하고 경복궁을 중건하며 당백전을 발행하고 척화비를 건립한 인물은 누구입니까?',
-    hint:'고종의 아버지로, 통상 수교 거부 정책을 추진했습니다.',
-    accepts:['흥선대원군','대원군'],
-    answer:'흥선대원군',
-    exp:'흥선대원군은 고종의 아버지로 섭정을 하며 왕권 강화 정책을 폈습니다. 서원 철폐, 경복궁 중건, 당백전 발행, 척화비 건립 등을 시행했으며, 병인양요와 신미양요 때 통상 수교 거부 정책을 고수했습니다.'
-  },
-  {
-    type:1, era:'contemp', eraName:'현대',
-    q:'경제개발 5개년 계획을 추진하고, 경부고속도로를 건설했으며, 새마을 운동을 전개하고, 유신헌법을 제정한 대통령은 누구입니까?',
-    hint:'베트남 국군 파견, 3선 개헌, 긴급 조치, 부마항쟁과 관련된 대통령입니다.',
-    accepts:['박정희'],
-    answer:'박정희',
-    exp:'박정희(1963~1979)는 경제개발 5개년 계획으로 수출 100억 달성, 경부고속도로 건설, 새마을 운동을 추진했습니다. 그러나 3선 개헌과 유신헌법으로 장기 집권을 도모했으며, 야간 통행 금지, 긴급 조치 등 권위주의적 통치를 했습니다.'
-  },
-  {
-    type:1, era:'contemp', eraName:'일제시대',
-    q:'상하이 훙커우 공원에서 폭탄을 투척한 독립운동가로, 한인애국단 소속인 이 인물은 누구입니까?',
-    hint:'1932년 일왕 생일 행사장에서 의거를 일으킨 인물입니다.',
-    accepts:['윤봉길'],
-    answer:'윤봉길',
-    exp:'윤봉길은 김구가 조직한 한인애국단 소속으로, 1932년 상하이 훙커우 공원에서 일본군 장성들에게 폭탄을 투척하는 의거를 일으켰습니다. 이 의거는 대한민국 임시정부의 위상을 크게 높이는 계기가 되었습니다.'
-  },
+const quizData = [
+    // ===== 선사시대 =====
+    { period: "선사시대", q: "동굴과 막집에서 생활하며 주먹도끼, 찍개, 뗀석기를 사용한 시대는?", a: ["구석기", "구석기시대"], hint: "돌을 깨뜨려 만든 석기" },
+    { period: "선사시대", q: "빗살무늬토기를 만들고, 가락바퀴를 사용한 시대는?", a: ["신석기", "신석기시대"], hint: "토기와 실잣기" },
+    { period: "선사시대", q: "거푸집, 반달돌칼, 청동검, 청동거울, 고인돌이 등장한 시대는?", a: ["청동기", "청동기시대"], hint: "금속 도구의 시작" },
+    { period: "선사시대", q: "벼농사가 시작된 시대는?", a: ["청동기", "청동기시대"], hint: "고인돌도 이 시대" },
+    { period: "선사시대", q: "민무늬토기가 사용된 시대는?", a: ["청동기", "청동기시대"], hint: "빗살무늬토기 이후" },
+    { period: "선사시대", q: "범금8조로 유명한 우리나라 최초의 국가는?", a: ["고조선"], hint: "단군왕검" },
+    { period: "선사시대", q: "'영고'라는 제천행사를 열고, 사출도(마가·우가·구가·저가)를 둔 나라는?", a: ["부여"], hint: "만주 지역 국가" },
+    { period: "선사시대", q: "서옥제(데릴사위제)로 유명한 나라는?", a: ["고구려"], hint: "삼국 중 가장 넓은 영토" },
+    { period: "선사시대", q: "민며느리제와 가족공동묘가 특징인 나라는?", a: ["옥저"], hint: "동해안 지역" },
+    { period: "선사시대", q: "책화, 무천의 풍습이 있고 단궁·과하마·반어피가 특산물인 나라는?", a: ["동예"], hint: "족외혼도 이 나라" },
+    { period: "선사시대", q: "소도(신성구역)가 있고, 지배자를 신지·읍차라 부른 사회는?", a: ["삼한"], hint: "마한, 진한, 변한" },
 
-  // ===== 유형2: 업적/제도/사건 맞추기 (10문제) =====
-  {
-    type:2, era:'pre', eraName:'선사시대',
-    q:'신석기 시대를 대표하는 토기의 이름을 쓰세요. 바닥이 뾰족하고 겉면에 빗살 모양의 무늬가 새겨져 있습니다.',
-    hint:'"빗살"과 "무늬"가 들어가는 토기 이름입니다.',
-    accepts:['빗살무늬토기','빗살무늬 토기'],
-    answer:'빗살무늬토기',
-    exp:'신석기 시대의 대표 유물은 빗살무늬토기(빗살문토기)입니다. 빗 모양 도구로 기하학적 무늬를 새긴 것이 특징이며, 바닥이 뾰족한 형태가 많습니다. 가락바퀴와 함께 신석기 시대를 대표하는 유물입니다.'
-  },
-  {
-    type:2, era:'three', eraName:'고구려',
-    q:'고구려 장수왕이 수도를 국내성에서 옮긴 곳은 어디입니까? 또한 장수왕은 이곳으로 천도한 뒤 백제 개로왕을 죽이고 한성을 함락했습니다.',
-    hint:'현재 북한의 수도이기도 한 도시입니다.',
-    accepts:['평양','평양성','평양천도','평양 천도'],
-    answer:'평양',
-    exp:'장수왕은 427년 수도를 평양으로 옮기고 남하 정책을 추진했습니다. 광개토대왕릉비를 건립하고, 백제를 공격하여 한성을 함락하고 개로왕을 전사시켰습니다. 이로 인해 백제는 웅진(공주)으로 천도하게 됩니다.'
-  },
-  {
-    type:2, era:'three', eraName:'신라',
-    q:'신라의 삼국 통일 과정에서, 나당연합군이 백제를 멸망시킨 결정적 전투인 황산벌 전투에서 결사대를 이끌고 싸운 신라의 장군은 누구입니까?',
-    hint:'5천 결사대를 이끌고 계백의 백제군에 맞서 싸운 화랑 출신 장군입니다.',
-    accepts:['관창','계백','김유신'],
-    answer:'관창 (또는 김유신 지휘 하)',
-    exp:'황산벌 전투에서 백제의 계백 장군이 5천 결사대로 맞섰고, 신라 측에서는 16세 화랑 관창이 결사대를 이끌고 돌격하여 전사했습니다. 이에 신라군의 사기가 올라 결국 승리했으며, 김유신이 전체 군을 지휘했습니다.'
-  },
-  {
-    type:2, era:'goryeo', eraName:'고려',
-    q:'거란의 1차 침입 때 외교 담판을 벌여 거란군을 물리치고, 강동 6주를 확보한 고려의 인물은 누구입니까?',
-    hint:'서희의 담판으로 유명합니다. "강동 ○주"를 획득했습니다.',
-    accepts:['서희'],
-    answer:'서희',
-    exp:'993년 거란의 1차 침입 때 서희는 거란 장수 소손녕과 외교 담판을 벌였습니다. "고려는 고구려를 계승한 나라"임을 주장하고, 거란과의 관계 정상화를 조건으로 강동 6주를 획득했습니다.'
-  },
-  {
-    type:2, era:'goryeo', eraName:'고려',
-    q:'고려 시대에 김부식이 편찬한, 고구려·백제·신라 삼국의 역사를 기전체로 서술한 역사서의 이름을 쓰세요.',
-    hint:'기전체로 쓰인 현존하는 우리나라 최고(最古)의 역사서입니다.',
-    accepts:['삼국사기'],
-    answer:'삼국사기',
-    exp:'삼국사기는 김부식이 인종의 명을 받아 1145년에 편찬한 기전체 역사서입니다. 고구려·백제·신라 삼국의 역사를 정리한 것으로, 현존하는 한국 최고의 역사서입니다. 삼국유사(일연)와 함께 삼국시대 연구의 핵심 자료입니다.'
-  },
-  {
-    type:2, era:'joseon', eraName:'조선',
-    q:'조선 시대에 공납(특산물)을 쌀이나 옷감, 동전으로 대신 납부하게 한 세금 제도의 이름을 쓰세요. 김육이 실시를 건의했습니다.',
-    hint:'"대동"이라는 단어가 들어가며, 이 제도 시행으로 "공인"이 등장했습니다.',
-    accepts:['대동법'],
-    answer:'대동법',
-    exp:'대동법은 기존의 공납(지역 특산물 납부)을 쌀·옷감·동전으로 통일하여 납부하게 한 제도입니다. 김육의 건의로 확대 실시되었으며, 이 과정에서 관청에 물품을 조달하는 전문 상인인 "공인"이 등장하게 되었습니다.'
-  },
-  {
-    type:2, era:'joseon', eraName:'조선',
-    q:'임진왜란 때 이순신 장군이 활약한 주요 해전 중, 명량에서 13척의 배로 133척의 왜선을 물리친 해전의 이름을 쓰세요.',
-    hint:'"명량"이 들어가는 해전으로, "울돌목"이라고도 불리는 좁은 해협에서 벌어졌습니다.',
-    accepts:['명량해전','명량대첩','명량 해전','명량 대첩'],
-    answer:'명량해전(명량대첩)',
-    exp:'명량해전(1597)은 이순신이 13척의 배로 일본 수군 133척을 격파한 전투입니다. 좁은 울돌목(명량)의 빠른 조류를 이용한 전략으로 대승을 거두었습니다. 임진왜란의 주요 해전으로는 한산도 대첩, 명량해전 등이 있습니다.'
-  },
-  {
-    type:2, era:'modern', eraName:'개항기',
-    q:'1894년 전봉준이 이끈 농민 봉기로, 전주화약·집강소 설치·우금치 전투 등이 벌어진 이 운동의 이름을 쓰세요.',
-    hint:'"동학"이라는 종교와 관련된 농민 운동입니다.',
-    accepts:['동학농민운동','동학농민혁명','동학 농민 운동','동학농민봉기'],
-    answer:'동학농민운동',
-    exp:'동학농민운동(1894)은 전봉준 등이 이끈 대규모 농민 봉기입니다. 전주화약 체결, 집강소 설치, 우금치 전투 등이 벌어졌으며, 관련 기구로 군국기무처가 있습니다. 이후 갑오개혁(과거제 폐지, 신분제 철폐)의 계기가 되었습니다.'
-  },
-  {
-    type:2, era:'contemp', eraName:'현대',
-    q:'1987년 전두환 정부 시기에 호헌철폐를 요구하며 일어난 민주화 운동으로, 4.13 호헌 조치에 반발하여 전국적으로 확산되었고, 그 결과 5년 단임의 대통령 직선제가 도입된 이 사건의 이름을 쓰세요.',
-    hint:'이한열, 박종철 등의 희생이 있었으며, "6월"이 들어가는 사건입니다.',
-    accepts:['6월민주항쟁','6월 민주항쟁','6월항쟁','6월 항쟁','6월민주화운동','6월 민주화 운동'],
-    answer:'6월 민주항쟁',
-    exp:'6월 민주항쟁(1987)은 전두환 정부의 4.13 호헌 조치에 반발하여 전국적으로 벌어진 민주화 운동입니다. 호헌철폐, 독재타도를 외치며 이한열·박종철의 희생이 있었고, 그 결과 5년 단임의 대통령 직선제를 쟁취했습니다.'
-  },
-  {
-    type:2, era:'contemp', eraName:'현대',
-    q:'3.15 부정선거에 항의하여 일어난 시민 혁명으로, 결국 이승만 대통령이 하야(하야)한 사건의 이름을 쓰세요.',
-    hint:'1960년 4월 19일에 절정에 달한 혁명입니다.',
-    accepts:['4.19혁명','4·19혁명','4.19 혁명','419혁명','4월혁명','4월 혁명','4.19','사일구혁명','4.19의거'],
-    answer:'4.19 혁명',
-    exp:'4.19 혁명(1960)은 이승만 정부의 3.15 부정선거에 항의하여 학생과 시민이 일으킨 민주화 혁명입니다. 전국적인 시위가 확산되어 결국 이승만 대통령이 하야했으며, 우리나라 민주화 운동의 출발점으로 평가됩니다.'
-  }
+    // ===== 고구려 =====
+    { period: "삼국시대", q: "불교를 수용하고, 율령을 반포하며, 태학을 세운 고구려 왕은?", a: ["소수림왕"], hint: "고구려 체제 정비" },
+    { period: "삼국시대", q: "'영락'이라는 연호를 사용하고, 신라에 침입한 왜를 격퇴한 고구려 왕은?", a: ["광개토대왕", "광개토왕", "광개토태왕"], hint: "거란·숙신·후연 정벌" },
+    { period: "삼국시대", q: "평양으로 천도하고 광개토대왕릉비를 건립한 고구려 왕은?", a: ["장수왕"], hint: "백제 개로왕을 죽임" },
+    { period: "삼국시대", q: "백제를 공격하여 한성을 함락시키고 백제 개로왕을 죽인 고구려 왕은?", a: ["장수왕"], hint: "평양 천도" },
+    { period: "삼국시대", q: "천리장성을 축조하고, 대막리지가 된 고구려의 실권자는?", a: ["연개소문"], hint: "김춘추가 군사 요청" },
+    { period: "삼국시대", q: "살수대첩에서 수나라 군대를 물리친 고구려 장군은?", a: ["을지문덕"], hint: "살수(청천강)" },
+    { period: "삼국시대", q: "고구려의 빈민 구제 제도로, 곡식을 빌려주었다가 가을에 갚게 한 것은?", a: ["진대법"], hint: "고구려의 복지 제도" },
+    { period: "삼국시대", q: "고구려의 귀족 회의 제도 이름은?", a: ["제가회의"], hint: "국가 중대사 결정" },
+
+    // ===== 백제 =====
+    { period: "삼국시대", q: "마한을 복속하고 고구려 고국원왕을 전사시킨 백제 왕은?", a: ["근초고왕"], hint: "백제 전성기" },
+    { period: "삼국시대", q: "무령왕릉의 주인이며, 중국 남조의 양과 친선관계를 맺은 백제 왕은?", a: ["무령왕"], hint: "무령왕릉" },
+    { period: "삼국시대", q: "남부여라 칭하고, 사비로 천도하며, 신라 진흥왕과 연합한 백제 왕은?", a: ["성왕"], hint: "한강 하류 일시 회복" },
+    { period: "삼국시대", q: "백제의 지방 통치 제도로 왕족을 파견하여 다스린 22개 지역은?", a: ["22담로", "담로"], hint: "왕족 파견 지방통치" },
+    { period: "삼국시대", q: "백제의 귀족 회의 장소로, 바위 위에서 회의를 한 곳은?", a: ["정사암"], hint: "바위 이름" },
+
+    // ===== 신라 =====
+    { period: "삼국시대", q: "우경(소로 밭 가는 것)을 장려하고, 순장을 금지하며, '신라' 국호를 정한 왕은?", a: ["지증왕"], hint: "우산국 정벌도" },
+    { period: "삼국시대", q: "이차돈의 순교를 계기로 불교를 공인하고, 율령을 반포한 신라 왕은?", a: ["법흥왕"], hint: "금관가야 병합" },
+    { period: "삼국시대", q: "화랑도를 개편하고, 북한산 순수비를 세우며, 대가야를 정복한 신라 왕은?", a: ["진흥왕"], hint: "순수비" },
+    { period: "삼국시대", q: "녹읍을 폐지하고 국학을 설립한 신라 왕은?", a: ["신문왕"], hint: "통일신라 체제 정비" },
+    { period: "삼국시대", q: "원효대사의 아들로, 이두를 정리하고 신문왕에게 화왕계를 지어 바친 인물은?", a: ["설총"], hint: "이두 정리" },
+    { period: "삼국시대", q: "당의 빈공과에 합격하고, 진성여왕에게 시무10조를 올린 6두품 출신 인물은?", a: ["최치원"], hint: "토황소격문" },
+    { period: "삼국시대", q: "무애가를 부르며 불교 대중화에 힘쓰고, '일심사상'을 주장한 승려는?", a: ["원효", "원효대사"], hint: "대승기신론소, 십문화쟁론" },
+    { period: "삼국시대", q: "화엄종을 개창하고 부석사를 창건한 승려는?", a: ["의상", "의상대사"], hint: "화엄일승법계도" },
+    { period: "삼국시대", q: "신라의 중앙 행정 기구로, 장관을 중시(시중)라 부른 기구는?", a: ["집사부"], hint: "신라 행정의 핵심" },
+    { period: "삼국시대", q: "신라에서 관리를 채용하기 위해 유교 경전 독서 능력으로 등급을 나눈 제도는?", a: ["독서삼품과"], hint: "독서 능력 평가" },
+    { period: "삼국시대", q: "신라의 귀족 회의로 만장일치로 국가 중대사를 결정한 제도는?", a: ["화백회의", "화백"], hint: "만장일치" },
+    { period: "삼국시대", q: "신라의 신분 제도로, 혈통에 따라 관등과 일상생활까지 제한한 것은?", a: ["골품제"], hint: "성골, 진골, 6두품..." },
+    { period: "삼국시대", q: "신라 촌락 문서로, 노동력 징수와 세금 징수를 위해 작성된 것은?", a: ["민정문서"], hint: "촌락의 인구, 토지 기록" },
+    { period: "삼국시대", q: "황산벌 전투에서 5천 결사대를 이끌고 싸운 백제 장군은?", a: ["계백"], hint: "5천 결사대" },
+    { period: "삼국시대", q: "나당전쟁에서 신라가 당나라를 물리친 두 전투는?", a: ["매소성 기벌포", "매소성기벌포", "매소성, 기벌포", "매소성과 기벌포"], hint: "신라의 삼국 통일 완성" },
+
+    // ===== 가야 =====
+    { period: "삼국시대", q: "전기 가야 연맹을 주도하고, 낙랑과 왜에 철을 수출한 가야는?", a: ["금관가야"], hint: "김해 지역" },
+    { period: "삼국시대", q: "후기 가야 연맹을 주도한 가야는?", a: ["대가야"], hint: "고령 지역" },
+    { period: "삼국시대", q: "가야의 건국 신화에 나오는 노래는?", a: ["구지가"], hint: "거북아 거북아~" },
+
+    // ===== 발해 =====
+    { period: "삼국시대", q: "발해를 건국한 인물은?", a: ["대조영"], hint: "고구려 계승" },
+    { period: "삼국시대", q: "당나라 산둥반도의 등주를 공격한 발해 장수는?", a: ["장문휴"], hint: "등주 공격" },
+    { period: "삼국시대", q: "고구려를 계승한 나라로 '해동성국'이라 불린 국가는?", a: ["발해"], hint: "대조영 건국" },
+    { period: "삼국시대", q: "발해의 행정 제도는 3성6부와 무엇으로 구성되었는가?", a: ["5경15부62주"], hint: "지방 행정 조직" },
+
+    // ===== 후삼국 =====
+    { period: "삼국시대", q: "후백제를 세우고, 공산전투에서 왕건에게 승리한 인물은?", a: ["견훤"], hint: "신검에 의해 유폐" },
+    { period: "삼국시대", q: "후고구려를 건립하고, 국호를 태봉으로 고치며, 광평성을 둔 인물은?", a: ["궁예"], hint: "철원 도읍" },
+
+    // ===== 고려 =====
+    { period: "고려", q: "사심관 제도, 기인제도, 훈요10조를 남긴 고려 왕은?", a: ["태조", "태조 왕건", "왕건"], hint: "고려 건국, 흑창" },
+    { period: "고려", q: "노비안검법을 실시하고 과거제도를 도입한 고려 왕은?", a: ["광종"], hint: "왕권 강화" },
+    { period: "고려", q: "최승로의 시무28조를 수용하고 12목을 설치한 고려 왕은?", a: ["성종"], hint: "유교 정치" },
+    { period: "고려", q: "전민변정도감을 설치하고, 쌍성총관부를 공격하여 철령 이북을 수복한 왕은?", a: ["공민왕"], hint: "기철 등 친원파 숙청" },
+    { period: "고려", q: "중서문하성과 중추원의 고위 관리가 참여한 고려의 최고 회의 기구는?", a: ["도병마사"], hint: "고려 기구" },
+    { period: "고려", q: "중서문하성의 낭사와 함께 '대간'으로 불리며 관리의 비리를 감찰한 기구는?", a: ["어사대"], hint: "감찰 기능" },
+    { period: "고려", q: "고려의 군사 제도는?", a: ["2군6위"], hint: "군사 편제" },
+    { period: "고려", q: "고려의 지방 행정 제도로, 병마사를 파견한 것은?", a: ["5도양계", "5도 양계"], hint: "지방 행정 구역" },
+    { period: "고려", q: "거란의 1차 침입 때 외교 담판으로 강동6주를 확보한 인물은?", a: ["서희"], hint: "외교 담판" },
+    { period: "고려", q: "거란의 3차 침입 때 귀주대첩에서 승리한 장군은?", a: ["강감찬"], hint: "귀주대첩" },
+    { period: "고려", q: "여진을 정벌하기 위해 별무반을 조직하고 동북9성을 축조한 인물은?", a: ["윤관"], hint: "별무반" },
+    { period: "고려", q: "몽골 침입 때 처인성에서 적장 살리타를 사살한 인물은?", a: ["김윤후"], hint: "처인성 전투" },
+    { period: "고려", q: "최씨 무신정권의 군사적 기반으로, 강화도→진도→제주도로 이동하며 항전한 군대는?", a: ["삼별초"], hint: "항파두리 유적지(제주)" },
+    { period: "고려", q: "몽골 침입기에 부처의 힘으로 나라를 지키려고 만든 대장경은?", a: ["팔만대장경"], hint: "합천 해인사" },
+    { period: "고려", q: "화통도감을 설치하고 화포를 만들어 진포대첩에서 왜구를 물리친 인물은?", a: ["최무선"], hint: "화약과 화포" },
+    { period: "고려", q: "황산대첩에서 왜구를 크게 물리친 장군(뒤에 조선을 건국)은?", a: ["이성계"], hint: "조선 건국자" },
+    { period: "고려", q: "홍산대첩에서 왜구를 물리친 고려 말 장군은?", a: ["최영"], hint: "이성계의 정적" },
+    { period: "고려", q: "이자겸의 난 이후 서경천도를 주장한 인물은?", a: ["묘청"], hint: "서경(평양) 천도" },
+    { period: "고려", q: "무신정변 후 집권한 최충헌이 설치한 정치 기구는?", a: ["교정도감"], hint: "최씨 무신정권" },
+    { period: "고려", q: "고려 무신정권기에 공주 명학소에서 일어난 천민 봉기의 주역은?", a: ["망이 망소이", "망이망소이", "망이·망소이"], hint: "천민의 반란" },
+    { period: "고려", q: "무신정권기 노비 해방을 주장하며 봉기를 계획한 인물은?", a: ["만적"], hint: "노비 만적의 난" },
+    { period: "고려", q: "고려시대 김부식이 기전체로 편찬한 역사서는?", a: ["삼국사기"], hint: "기전체, 김부식" },
+    { period: "고려", q: "일연이 지은 역사서로 단군의 고조선 건국 이야기가 수록된 것은?", a: ["삼국유사"], hint: "일연 스님" },
+    { period: "고려", q: "이승휴가 지은 역사서로 중국과 우리나라 역사를 담은 것은?", a: ["제왕운기"], hint: "이승휴" },
+    { period: "고려", q: "고려시대 교관겸수를 주장하고, 천태종을 개창한 승려는?", a: ["의천"], hint: "대각국사" },
+    { period: "고려", q: "돈오점수를 주장하고, 수선사 결사 운동을 이끈 고려 승려는?", a: ["지눌"], hint: "수선사" },
+    { period: "고려", q: "고려의 중앙 최고 교육기관은?", a: ["국자감"], hint: "중앙 교육기관" },
+    { period: "고려", q: "9재학당을 설립한 인물로 문헌공도라 불린 사학 교육자는?", a: ["최충"], hint: "사학12도" },
+    { period: "고려", q: "고려시대에 성리학을 처음 도입한 인물은?", a: ["안향"], hint: "원나라에서 도입" },
+    { period: "고려", q: "현존하는 세계 최고(最古)의 금속활자본은?", a: ["직지", "직지심체요절"], hint: "청주 흥덕사" },
+    { period: "고려", q: "고려의 은으로 만든 화폐로, 활구라고도 불린 것은?", a: ["은병"], hint: "고려 화폐" },
+    { period: "고려", q: "고려 수도 개경 근처의 국제 무역항은?", a: ["벽란도"], hint: "고려 국제 무역" },
+
+    // ===== 조선 전기 =====
+    { period: "조선", q: "위화도 회군을 단행하고, 황산에서 왜구를 물리친 조선 건국 인물은?", a: ["태조", "태조 이성계", "이성계"], hint: "요동 정벌 반대" },
+    { period: "조선", q: "호패법을 실시하고, 6조직계제를 도입하며, 사병을 혁파한 조선 왕은?", a: ["태종"], hint: "신문고도 설치" },
+    { period: "조선", q: "집현전을 설치하고, 훈민정음을 창제한 왕은?", a: ["세종", "세종대왕"], hint: "농사직설, 4군6진" },
+    { period: "조선", q: "앙부일구, 자격루, 측우기가 만들어진 시대의 왕은?", a: ["세종", "세종대왕"], hint: "과학 발전" },
+    { period: "조선", q: "직전법을 실시하고 단종을 몰아낸 왕은?", a: ["세조"], hint: "집현전 폐지" },
+    { period: "조선", q: "경국대전을 완성하고 홍문관을 설치한 왕은?", a: ["성종"], hint: "조선 법전 완성" },
+    { period: "조선", q: "조선 개국공신으로 불씨잡변과 조선경국전을 저술한 인물은?", a: ["정도전"], hint: "조선 설계자" },
+    { period: "조선", q: "현량과를 실시하고, 위훈삭제를 건의하다 기묘사화로 처형된 인물은?", a: ["조광조"], hint: "소격서 폐지 주장" },
+    { period: "조선", q: "김종직의 조의제문이 발단이 된 사화는?", a: ["무오사화"], hint: "연산군 때" },
+    { period: "조선", q: "중종이 조광조와 사림을 처단한 사건은?", a: ["기묘사화"], hint: "중종 때" },
+    { period: "조선", q: "왕의 외척 간 권력 다툼으로 명종 때 일어난 사화는?", a: ["을사사화"], hint: "명종 때" },
+    { period: "조선", q: "도산서원을 세우고, 성학십도를 저술한 성리학자는?", a: ["이황"], hint: "예안 향약" },
+    { period: "조선", q: "해주향약을 만들고, 성학집요를 저술하며, 10만양병설을 주장한 학자는?", a: ["이이"], hint: "율곡" },
+    { period: "조선", q: "동의보감을 저술한 의학자는?", a: ["허준"], hint: "한의학 백과사전" },
+    { period: "조선", q: "임진왜란 당시 훈련도감 설치를 주장하고, 징비록을 저술한 인물은?", a: ["유성룡"], hint: "징비록" },
+    { period: "조선", q: "조선시대 왕명 출납을 담당한 기구는?", a: ["승정원"], hint: "6명의 승지" },
+    { period: "조선", q: "사간원·홍문관과 함께 삼사로 불리며 관리를 감찰한 기구는?", a: ["사헌부"], hint: "삼사 중 하나" },
+    { period: "조선", q: "옥당이라고도 불리며, 성종 때 설치된 왕의 자문·경연 기관은?", a: ["홍문관"], hint: "옥당" },
+    { period: "조선", q: "조선시대 최고 교육기관은?", a: ["성균관"], hint: "유교 교육" },
+    { period: "조선", q: "향촌의 양반들로 구성되어 수령을 보좌하고 향리를 감찰한 기구는?", a: ["유향소"], hint: "지방 자치 기구" },
+    { period: "조선", q: "조선의 중앙 정치 기구로 중종 때 외적 방어를 위해 설치된 기구는?", a: ["비변사"], hint: "세도정치 시기 외척 권력 기반" },
+    { period: "조선", q: "세계문화유산으로, 교육과 선현 제사를 담당하며 흥선대원군이 47곳을 제외하고 폐지한 것은?", a: ["서원"], hint: "성리학 교육 기관" },
+    { period: "조선", q: "일본에 파견된 조선의 외교사절단은?", a: ["통신사"], hint: "일본 외교" },
+    { period: "조선", q: "조선시대 사법 기구로 죄인 체포·압송·형 집행을 담당한 곳은?", a: ["의금부"], hint: "사법 기구" },
+
+    // ===== 조선 후기 =====
+    { period: "조선", q: "명과 후금 사이에서 중립외교를 펼치고, 대동법을 처음 실시한 왕은?", a: ["광해군"], hint: "강홍립 파병" },
+    { period: "조선", q: "인조반정으로 즉위한 후 병자호란 때 남한산성으로 피신한 왕은?", a: ["인조"], hint: "삼전도의 굴욕" },
+    { period: "조선", q: "북벌을 추진하고, 나선정벌에 군사를 파견한 왕은?", a: ["효종"], hint: "청에 대한 복수" },
+    { period: "조선", q: "서인과 남인 간 상복 착용 기간을 둘러싼 예송논쟁이 벌어진 시기의 왕은?", a: ["현종"], hint: "예송논쟁" },
+    { period: "조선", q: "백두산정계비를 세우고, 경신환국을 단행한 왕은?", a: ["숙종"], hint: "환국 정치" },
+    { period: "조선", q: "탕평비를 세우고, 균역법을 실시하며, 속대전을 편찬한 왕은?", a: ["영조"], hint: "탕평 정치" },
+    { period: "조선", q: "규장각을 설치하고, 수원 화성을 건설하며, 신해통공을 실시한 왕은?", a: ["정조"], hint: "장용영, 초계문신제" },
+    { period: "조선", q: "임진왜란 때 '홍의장군'으로 불린 의병장은?", a: ["곽재우"], hint: "붉은 옷" },
+    { period: "조선", q: "행주대첩에서 왜군을 물리친 장군은?", a: ["권율"], hint: "행주산성" },
+    { period: "조선", q: "한산도 대첩과 명량해전의 주인공인 장군은?", a: ["이순신"], hint: "거북선" },
+    { period: "조선", q: "진주대첩에서 왜군을 물리친 장군은?", a: ["김시민"], hint: "진주성" },
+    { period: "조선", q: "임진왜란 중 설치되어 포수·사수·살수로 구성된 직업 군인 부대는?", a: ["훈련도감"], hint: "삼수병" },
+    { period: "조선", q: "병자호란 때 백마산성에서 항전한 장군은?", a: ["임경업"], hint: "백마산성" },
+    { period: "조선", q: "공납을 특산물 대신 쌀·옷감·동전으로 납부하게 하고, 김육이 건의한 제도는?", a: ["대동법"], hint: "공인 등장 계기" },
+    { period: "조선", q: "영조가 군포를 2필에서 1필로 줄인 제도는?", a: ["균역법"], hint: "군포 부담 경감" },
+    { period: "조선", q: "경기도 지역의 토지에 한해 관료에게 수조권을 지급한 조선 초 토지 제도는?", a: ["과전법"], hint: "관료 수조권" },
+    { period: "조선", q: "성호사설을 저술하고 한전론(영업전 매매 금지)을 주장한 실학자는?", a: ["이익"], hint: "성호 이익" },
+    { period: "조선", q: "반계수록을 저술하고 균전론을 주장한 실학자는?", a: ["유형원"], hint: "반계" },
+    { period: "조선", q: "목민심서를 저술하고, 여전론을 주장하며, 거중기를 설계한 실학자는?", a: ["정약용"], hint: "다산" },
+    { period: "조선", q: "열하일기, 양반전, 허생전을 저술한 실학자는?", a: ["박지원"], hint: "연암" },
+    { period: "조선", q: "북학의를 저술하고, 규장각 검서관을 지낸 서얼 출신 실학자는?", a: ["박제가"], hint: "소비 촉진 주장" },
+    { period: "조선", q: "의산문답에서 무한 우주론을 주장한 실학자는?", a: ["홍대용"], hint: "의산문답" },
+    { period: "조선", q: "안동 김씨 등 외척 가문이 권력을 독점하고 삼정이 문란해진 시기를 무엇이라 하는가?", a: ["세도정치"], hint: "삼정의 문란" },
+    { period: "조선", q: "서북지방 차별대우에 반발하여 봉기한 인물은?", a: ["홍경래"], hint: "서북 지방" },
+    { period: "조선", q: "백낙신의 수탈에 반발하여 유계춘이 중심이 된 진주민란을 무엇이라 하는가?", a: ["임술농민봉기", "임술 농민봉기", "진주민란"], hint: "삼정이정청 설치 계기" },
+    { period: "조선", q: "최제우·최시형이 창시하고, 동경대전·용담유사를 경전으로 한 종교는?", a: ["동학"], hint: "인내천" },
+    { period: "조선", q: "중국에 다녀온 사신들에 의해 '서학'으로 소개된 종교는?", a: ["천주교", "서학"], hint: "신유박해" },
+    { period: "조선", q: "제주도 백성들을 구제한 여성 인물은?", a: ["김만덕"], hint: "제주도 구제" },
+    { period: "조선", q: "대동여지도를 만든 인물은?", a: ["김정호"], hint: "목판본, 22첩" },
+    { period: "조선", q: "몽유도원도를 그린 조선 전기 화가는?", a: ["안견"], hint: "조선 전기 화가" },
+    { period: "조선", q: "세한도를 그리고 북한산비를 연구한 조선 후기 인물은?", a: ["김정희", "추사 김정희"], hint: "추사체" },
+    { period: "조선", q: "인왕제색도와 금강전도를 그린 조선 후기 화가는?", a: ["정선"], hint: "진경산수화" },
+    { period: "조선", q: "태종 때 만들어진 현존 동아시아 최고(最古)의 세계지도는?", a: ["혼일강리역대국도지도"], hint: "태종 때 제작" },
+
+    // ===== 개항기 =====
+    { period: "개항기", q: "서원을 철폐하고, 경복궁을 중건하며, 당백전을 발행하고, 척화비를 세운 인물은?", a: ["흥선대원군"], hint: "고종의 아버지" },
+    { period: "개항기", q: "병인양요 때 정족산성에서 프랑스군을 물리친 장군은?", a: ["양헌수"], hint: "정족산성" },
+    { period: "개항기", q: "병인양요 때 프랑스가 약탈한 것은?", a: ["외규장각 의궤", "외규장각의궤", "의궤"], hint: "프랑스 약탈" },
+    { period: "개항기", q: "신미양요 때 광성보에서 미군과 싸운 장군은?", a: ["어재연"], hint: "광성보, 초지진" },
+    { period: "개항기", q: "운요호 사건을 계기로 체결된 조선 최초의 근대적 조약은?", a: ["강화도조약", "조일수호조규"], hint: "부산 외 3항구 개항" },
+    { period: "개항기", q: "조선이 서양과 맺은 최초의 근대적 조약은?", a: ["조미수호통상조약"], hint: "보빙사 파견 계기" },
+    { period: "개항기", q: "구식 군대의 차별대우(별기군 우대)가 원인이 된 사건은?", a: ["임오군란"], hint: "청의 개입으로 진압" },
+    { period: "개항기", q: "임오군란의 결과 일본 군대가 조선에 주둔하게 된 조약은?", a: ["제물포조약", "제물포 조약"], hint: "일본군 주둔" },
+    { period: "개항기", q: "임오군란의 결과 청 상인의 내지 통상이 허용된 조약은?", a: ["조청상민수륙무역장정"], hint: "청 내정간섭 심화" },
+    { period: "개항기", q: "우정국 개국 축하연 때 김옥균 등 개화파가 일으킨 정변은?", a: ["갑신정변"], hint: "3일 만에 실패" },
+    { period: "개항기", q: "전봉준이 이끈 농민 운동으로, 전주화약·집강소 설치·우금치 전투가 관련된 것은?", a: ["동학농민운동", "동학농민혁명"], hint: "전봉준" },
+    { period: "개항기", q: "동학농민운동과 관련하여 설치된 개혁 기구는?", a: ["군국기무처"], hint: "갑오개혁 추진" },
+    { period: "개항기", q: "단발령과 태양력 사용을 시행한 개혁은?", a: ["을미개혁"], hint: "건양 연호" },
+    { period: "개항기", q: "을미사변 후 고종이 러시아 공사관으로 거처를 옮긴 사건은?", a: ["아관파천"], hint: "러시아 공사관" },
+    { period: "개항기", q: "환구단에서 대한제국을 선포하고 대한국국제를 발표한 내용과 관련된 개혁은?", a: ["광무개혁"], hint: "지계 발급" },
+    { period: "개항기", q: "독립문, 독립신문 발행, 만민공동회를 개최한 단체는?", a: ["독립협회"], hint: "서재필" },
+    { period: "개항기", q: "을사늑약의 결과 설치된 일제 통치 기관은?", a: ["통감부"], hint: "이토 히로부미" },
+    { period: "개항기", q: "헤이그 특사로 파견된 세 인물은?", a: ["이준 이상설 이위종", "이준, 이상설, 이위종"], hint: "만국평화회의" },
+    { period: "개항기", q: "을사의병 때 '왜양일체론'을 주장한 의병장은?", a: ["최익현"], hint: "왜양일체론" },
+    { period: "개항기", q: "평민 출신으로 을사의병을 이끈 의병장은?", a: ["신돌석"], hint: "평민 의병장" },
+    { period: "개항기", q: "일본의 황무지 개척권 요구에 반대한 단체는?", a: ["보안회"], hint: "황무지 개척권 반대" },
+    { period: "개항기", q: "안창호, 양기탁이 만든 비밀결사로, 오산학교·대성학교를 설립한 단체는?", a: ["신민회"], hint: "105인 사건으로 해체" },
+    { period: "개항기", q: "서상돈이 주도하고, 대한매일신보가 지원한 '일본에 진 빚을 갚자'는 운동은?", a: ["국채보상운동"], hint: "대구에서 시작" },
+    { period: "개항기", q: "서재필이 한글판·영문판으로 간행한 최초의 민간 신문은?", a: ["독립신문"], hint: "서재필" },
+    { period: "개항기", q: "양기탁과 베델이 창간한 신문으로, 국채보상운동을 지원한 것은?", a: ["대한매일신보"], hint: "영국인 베델" },
+    { period: "개항기", q: "순한문으로 열흘에 한 번 발간되고, 박문국에서 발행된 최초의 근대 신문은?", a: ["한성순보"], hint: "최초의 근대 신문" },
+    { period: "개항기", q: "알렌의 건의로 세워진 우리나라 최초의 서양식 병원은?", a: ["광혜원", "제중원"], hint: "알렌" },
+    { period: "개항기", q: "함경도 덕원 주민이 설립한 우리나라 최초의 근대식 학교는?", a: ["원산학사"], hint: "최초 근대 학교" },
+    { period: "개항기", q: "정부가 만든 근대 교육기관으로 헐버트 등이 교사로 참여한 곳은?", a: ["육영공원"], hint: "양반 자제 영어·수학" },
+    { period: "개항기", q: "조선 지방관이 곡식의 타지방 유출을 금하는 조치를 무엇이라 하는가?", a: ["방곡령"], hint: "곡식 유출 금지" },
+
+    // ===== 일제시대 =====
+    { period: "일제시대", q: "1910년대 일제 통치 방식으로, 헌병경찰·회사령·토지조사사업이 특징인 것은?", a: ["무단통치", "헌병경찰통치"], hint: "칼찬 경찰, 태형" },
+    { period: "일제시대", q: "1920년대 일제가 쌀을 수탈하기 위해 실시한 정책은?", a: ["산미증식계획"], hint: "쌀 증산" },
+    { period: "일제시대", q: "일제가 문화통치를 하게 되는 계기가 된 운동은?", a: ["3.1운동", "31운동", "삼일운동"], hint: "1919년" },
+    { period: "일제시대", q: "3.1운동의 결과 수립된 독립운동의 최고 기관은?", a: ["대한민국임시정부", "임시정부", "대한민국 임시정부"], hint: "상하이" },
+    { period: "일제시대", q: "대한민국임시정부의 국내 비밀 행정 조직망 이름은?", a: ["연통제"], hint: "교통국도 운영" },
+    { period: "일제시대", q: "김구가 조직하고, 윤봉길·이봉창이 활동한 단체는?", a: ["한인애국단"], hint: "의거 활동" },
+    { period: "일제시대", q: "상하이 홍커우 공원에서 폭탄을 투척한 독립운동가는?", a: ["윤봉길"], hint: "한인애국단" },
+    { period: "일제시대", q: "일본 천왕에게 폭탄을 투척한 독립운동가는?", a: ["이봉창"], hint: "한인애국단" },
+    { period: "일제시대", q: "김원봉이 창설하고, 신채호의 조선혁명선언문을 활동지침으로 삼은 단체는?", a: ["의열단"], hint: "김원봉" },
+    { period: "일제시대", q: "조선총독부에 폭탄을 투척한 의열단원은?", a: ["김익상"], hint: "의열단" },
+    { period: "일제시대", q: "종로경찰서에 폭탄을 투척한 의열단원은?", a: ["김상옥"], hint: "의열단" },
+    { period: "일제시대", q: "순종 인산일에 학생 중심으로 전개된 만세운동은?", a: ["6.10만세운동", "6.10 만세운동", "610만세운동"], hint: "신간회 결성 계기" },
+    { period: "일제시대", q: "비타협적 민족주의자와 사회주의자가 함께 만든 단체로, 광주학생항일운동 진상조사단을 파견한 것은?", a: ["신간회"], hint: "근우회(여성단체)" },
+    { period: "일제시대", q: "조선 학생과 일본 학생의 충돌에서 전개된, 3.1운동 이후 최대 만세운동은?", a: ["광주학생항일운동", "광주학생운동"], hint: "1929년 광주" },
+    { period: "일제시대", q: "청산리대첩을 이끈 독립군 지휘관은?", a: ["김좌진"], hint: "북로군정서군" },
+    { period: "일제시대", q: "봉오동 전투에서 일본군을 크게 물리친 독립군 지휘관은?", a: ["홍범도"], hint: "대한독립군" },
+    { period: "일제시대", q: "1940년 대한민국임시정부 산하에 창설된 군대로, 총사령관이 지청천인 것은?", a: ["한국광복군", "광복군"], hint: "국내진공작전 계획" },
+    { period: "일제시대", q: "양세봉이 이끌고 흥경성 전투·영릉가 전투를 치른 독립군 부대는?", a: ["조선혁명군"], hint: "양세봉" },
+    { period: "일제시대", q: "김원봉이 중국 관내에서 결성한 한인 무장 조직은?", a: ["조선의용대"], hint: "김원봉" },
+    { period: "일제시대", q: "평양에서 조만식이 중심이 되어 '내 살림 내 것으로'를 내건 운동은?", a: ["물산장려운동"], hint: "조만식" },
+    { period: "일제시대", q: "이상재·이승훈 등이 고등교육기관 설립을 위해 1천만 원 모금을 추진한 운동은?", a: ["민립대학설립운동", "민립대학 설립운동"], hint: "1천만 원 모금" },
+    { period: "일제시대", q: "1920년대에 8시간 노동제와 최저임금제를 주장한 노동 운동은?", a: ["원산총파업", "원산 총파업"], hint: "원산" },
+    { period: "일제시대", q: "박상진이 만든 1910년대 비밀결사 단체로, 군자금 모집과 친일 부호 처단 활동을 한 것은?", a: ["대한광복회"], hint: "박상진" },
+    { period: "일제시대", q: "이회영 등이 만주 삼원보에 세운 무장 독립 투쟁의 교육 기관은?", a: ["신흥강습소", "신흥무관학교"], hint: "이회영, 만주" },
+    { period: "일제시대", q: "1910년 일제 식민통치를 위해 만들어진 통치기구는?", a: ["조선총독부"], hint: "식민 통치 기구" },
+    { period: "일제시대", q: "조선혁명선언문을 집필하고, 조선상고사를 저술한 역사학자는?", a: ["신채호"], hint: "아와 비아의 투쟁" },
+    { period: "일제시대", q: "국혼을 강조하고, 한국통사를 저술하며, 임시정부 2대 대통령을 역임한 인물은?", a: ["박은식"], hint: "한국통사" },
+    { period: "일제시대", q: "조선말 큰사전 편찬과 한글 맞춤법 통일안을 만든 단체는?", a: ["조선어학회"], hint: "한글 연구" },
+    { period: "일제시대", q: "조선사회경제사를 저술한 역사학자는?", a: ["백남운"], hint: "사회경제사학" },
+    { period: "일제시대", q: "시 '광야'를 쓰고, 수인번호를 이름으로 사용한 시인은?", a: ["이육사"], hint: "264" },
+    { period: "일제시대", q: "시 '별 헤는 밤', '서시'를 쓴 시인은?", a: ["윤동주"], hint: "하늘과 바람과 별과 시" },
+    { period: "일제시대", q: "사이토 총독 암살을 시도한 65세의 대한노인단 소속 독립운동가는?", a: ["강우규"], hint: "대한노인단" },
+    { period: "일제시대", q: "동학의 3대 교주로 동학을 천도교로 바꾸고, 민족대표 33인에 참여한 인물은?", a: ["손병희"], hint: "천도교" },
+    { period: "일제시대", q: "어린이날을 만든 인물은?", a: ["방정환"], hint: "어린이 운동" },
+    { period: "일제시대", q: "영국인 베델과 함께 대한매일신보를 창간하고, 국채보상운동을 전개한 인물은?", a: ["양기탁"], hint: "베델과 함께" },
+
+    // ===== 현대 =====
+    { period: "현대", q: "조선건국동맹, 조선건국준비위원회를 조직하고 좌우합작운동에 참여한 인물은?", a: ["여운형"], hint: "좌우합작" },
+    { period: "현대", q: "남한 단독 정부 수립을 주장한 '정읍발언'을 한 인물은?", a: ["이승만"], hint: "초대 대통령" },
+    { period: "현대", q: "남북협상을 위해 평양에 간 남한 정치인 두 명은?", a: ["김구 김규식", "김구, 김규식"], hint: "남북 협상" },
+    { period: "현대", q: "제주도에서 남한 단독 정부 수립에 반대하여 일어난 사건은?", a: ["제주 4.3사건", "4.3사건", "제주4.3사건", "4.3 사건"], hint: "제주도" },
+    { period: "현대", q: "우리나라 최초의 보통선거로 국회의원을 선출한 의회는?", a: ["제헌의회", "제헌국회"], hint: "1대 국회" },
+    { period: "현대", q: "3.15 부정선거에 항거하여 이승만 대통령을 하야시킨 사건은?", a: ["4.19혁명", "4.19 혁명", "419혁명"], hint: "이승만 하야" },
+    { period: "현대", q: "1980년 전두환 정부 시기 광주에서 일어난 민주화 운동은?", a: ["5.18민주화운동", "5.18 민주화운동", "518민주화운동", "광주민주화운동"], hint: "광주" },
+    { period: "현대", q: "1987년 '호헌철폐, 독재타도'를 외치며 5년 단임 직선제를 이끌어낸 사건은?", a: ["6월민주항쟁", "6월 민주항쟁"], hint: "이한열, 박종철" },
+    { period: "현대", q: "경제개발5개년 계획, 경부고속도로, 새마을 운동을 추진한 대통령은?", a: ["박정희"], hint: "유신 헌법" },
+    { period: "현대", q: "7.4 남북 공동 성명을 발표하고 남북 조절 위원회를 설치한 대통령은?", a: ["박정희"], hint: "남북 대화 시작" },
+    { period: "현대", q: "삼청교육대를 운영하고, 남북 이산가족 상봉을 실현한 대통령은?", a: ["전두환"], hint: "3저 호황" },
+    { period: "현대", q: "서울 올림픽을 개최하고, 남북한 유엔 동시 가입을 이끌어낸 대통령은?", a: ["노태우"], hint: "1988년" },
+    { period: "현대", q: "남북 기본 합의서를 채택한 대통령은?", a: ["노태우"], hint: "남북 관계 개선" },
+    { period: "현대", q: "금융실명제를 실시하고, 조선총독부 건물을 철거한 대통령은?", a: ["김영삼"], hint: "OECD 가입" },
+    { period: "현대", q: "IMF 외환위기가 발생한 시기의 대통령은?", a: ["김영삼"], hint: "1997년" },
+    { period: "현대", q: "남북 정상 회담을 최초로 실현하고, 6.15 남북 공동 선언을 발표한 대통령은?", a: ["김대중"], hint: "금강산 관광" },
+    { period: "현대", q: "IMF 구제 금융을 상환하고, 한일 월드컵을 개최한 대통령은?", a: ["김대중"], hint: "2002년" },
+    { period: "현대", q: "자유무역협정(FTA)을 체결하고, 2차 남북정상회담을 한 대통령은?", a: ["노무현"], hint: "참여정부" },
+    { period: "현대", q: "16개국 유엔군이 참전한 전쟁은?", a: ["6.25전쟁", "625전쟁", "한국전쟁"], hint: "인천상륙작전" },
+    { period: "현대", q: "사사오입 개헌안과 반민족행위특별조사위원회가 관련된 대통령은?", a: ["이승만"], hint: "제1공화국" },
 ];
 
-let cur=0, cc=0, ww=0;
-let ans=Array(Q.length).fill(false);
-let uA=Array(Q.length).fill('');
-let isC=Array(Q.length).fill(false);
+// ===== Quiz Logic =====
+const periods = [...new Set(quizData.map(q => q.period))];
+let currentFilter = "전체";
+let answered = 0, score = 0;
+const states = new Array(quizData.length).fill(null);
 
-function norm(s){return s.replace(/\s+/g,'').replace(/[·\-()（）]/g,'').toLowerCase();}
-
-function render(i){
-  const q=Q[i], a=document.getElementById('qArea');
-  const eraMap={pre:'선사/고조선',three:'삼국시대',goryeo:'고려',joseon:'조선',modern:'개항기',contemp:'현대'};
-  const eraCls={pre:'era-pre',three:'era-three',goryeo:'era-goryeo',joseon:'era-joseon',modern:'era-modern',contemp:'era-contemp'};
-  const typeCls=q.type===1?'type1':'type2';
-  const typeName=q.type===1?'유형1 | 왕/인물 이름':'유형2 | 업적/사건';
-  
-  let res='';
-  if(ans[i]){
-    res=isC[i]
-      ?'<div class="result-badge cr show">정답입니다!</div>'
-      :'<div class="result-badge wr show">오답입니다. 정답: <strong>'+q.answer+'</strong></div>';
-  }
-  
-  a.innerHTML=
-    '<div class="question-card">'+
-    '<span class="era-badge '+eraCls[q.era]+'">'+q.eraName+'</span>'+
-    '<span class="type-badge '+typeCls+'">'+typeName+'</span>'+
-    '<div class="question-num">문제 '+(i+1)+' / '+Q.length+'</div>'+
-    '<div class="question-text">'+q.q+'</div>'+
-    '<div class="hint-box">'+q.hint+'</div>'+
-    '<div class="answer-row">'+
-    '<input type="text" class="answer-input" id="aIn" placeholder="답을 입력하세요" value="'+(uA[i]||'')+'" '+(ans[i]?'disabled':'')+' autocomplete="off">'+
-    '<button class="submit-btn" id="sBtn" onclick="check('+i+')" '+(ans[i]?'disabled':'')+'>확인</button>'+
-    '</div>'+
-    res+
-    '<div class="explanation '+(ans[i]?'show':'')+'">'+q.exp+'</div>'+
-    '</div>';
-  
-  document.getElementById('qNum').textContent=(i+1)+'/'+Q.length;
-  document.getElementById('pFill').style.width=(((i+1)/Q.length)*100)+'%';
-  document.getElementById('prevBtn').classList.toggle('hidden',i===0);
-  var nb=document.getElementById('nextBtn');
-  nb.style.display=ans[i]?'':'none';
-  nb.textContent=i===Q.length-1?'결과 보기':'다음 문제';
-  
-  if(!ans[i]) setTimeout(function(){var inp=document.getElementById('aIn');if(inp)inp.focus();},80);
-  setTimeout(function(){var inp=document.getElementById('aIn');if(inp)inp.onkeydown=function(e){if(e.key==='Enter'&&!ans[i])check(i);};},50);
+function normalize(s) {
+    return s.replace(/\s+/g, '').replace(/[·,.\-\/]/g, '').toLowerCase().trim();
 }
 
-function check(i){
-  if(ans[i])return;
-  var inp=document.getElementById('aIn'), v=inp.value.trim();
-  if(!v){inp.focus();return;}
-  ans[i]=true; uA[i]=v;
-  var nv=norm(v), match=Q[i].accepts.some(function(a){return norm(a)===nv;});
-  if(match){cc++;isC[i]=true;}else{ww++;isC[i]=false;}
-  document.getElementById('cCnt').textContent=cc;
-  document.getElementById('wCnt').textContent=ww;
-  render(i);
-}
+function checkAnswer(idx) {
+    const input = document.getElementById('input-' + idx);
+    const btn = document.getElementById('btn-' + idx);
+    const fb = document.getElementById('fb-' + idx);
+    const card = document.getElementById('card-' + idx);
+    const userAns = normalize(input.value);
+    if (!userAns) return;
 
-function next(){if(cur===Q.length-1){showResult();return;}cur++;render(cur);}
-function prev(){if(cur>0){cur--;render(cur);}}
+    const correct = quizData[idx].a.some(a => normalize(a) === userAns);
 
-function showResult(){
-  document.getElementById('qArea').classList.add('hidden');
-  document.getElementById('navArea').classList.add('hidden');
-  var rs=document.getElementById('resultScreen');
-  rs.style.display='block';
-  document.getElementById('fScore').textContent=cc+' / '+Q.length;
-  var p=(cc/Q.length)*100, m='';
-  if(p===100)m='만점! 한국사 마스터입니다!';
-  else if(p>=85)m='훌륭합니다! 거의 완벽해요. 틀린 부분만 복습하면 됩니다.';
-  else if(p>=70)m='좋아요! 대부분 잘 알고 있어요. 아래 오답 노트를 확인해보세요.';
-  else if(p>=50)m='절반 이상 맞았어요. 시대별로 정리하며 복습해보세요.';
-  else m='아직 공부가 더 필요해요. 정리 노트를 다시 꼼꼼히 읽어보세요!';
-  document.getElementById('rMsg').textContent=m;
-  
-  var rv=document.getElementById('reviewSec'),h='<h3>오답 노트</h3>',hw=false;
-  for(var i=0;i<Q.length;i++){
-    if(!isC[i]){
-      hw=true;
-      h+='<div class="review-item rw">'+
-        '<div class="rq">Q'+(i+1)+'. '+Q[i].q.replace(/<[^>]*>/g,'').substring(0,80)+'...</div>'+
-        '<div class="ra">내 답: <span class="user-ans">'+(uA[i]||'(미입력)')+'</span> → 정답: <span>'+Q[i].answer+'</span></div>'+
-        '<div class="ra" style="margin-top:5px;font-size:0.83em;">'+Q[i].exp+'</div></div>';
+    if (correct) {
+        states[idx] = 'correct';
+        score++;
+        card.classList.add('correct');
+        fb.textContent = '정답입니다!';
+        fb.className = 'feedback show correct-fb';
+    } else {
+        states[idx] = 'wrong';
+        card.classList.add('wrong');
+        fb.textContent = '오답! 정답: ' + quizData[idx].a[0];
+        fb.className = 'feedback show wrong-fb';
     }
-  }
-  if(!hw)h+='<p style="color:#2ecc71;font-size:1.1em;">모든 문제를 맞았습니다! 대단해요!</p>';
-  rv.innerHTML=h;
+
+    input.disabled = true;
+    btn.disabled = true;
+    answered++;
+
+    document.getElementById('answered').textContent = answered;
+    document.getElementById('score').textContent = score;
+
+    const visibleCards = quizData.filter((q, i) =>
+        (currentFilter === '전체' || q.period === currentFilter) && states[i] !== null
+    ).length;
+    const totalVisible = quizData.filter(q =>
+        currentFilter === '전체' || q.period === currentFilter
+    ).length;
+
+    if (answered === quizData.length) showResult();
 }
 
-function restart(){
-  cur=0;cc=0;ww=0;
-  ans=Array(Q.length).fill(false);uA=Array(Q.length).fill('');isC=Array(Q.length).fill(false);
-  document.getElementById('cCnt').textContent='0';
-  document.getElementById('wCnt').textContent='0';
-  document.getElementById('qArea').classList.remove('hidden');
-  document.getElementById('navArea').classList.remove('hidden');
-  document.getElementById('resultScreen').style.display='none';
-  render(0);
+function showHint(idx) {
+    const h = document.getElementById('hint-' + idx);
+    h.classList.toggle('show');
 }
 
-render(0);
+function showResult() {
+    const summary = document.getElementById('resultSummary');
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('finalTotal').textContent = quizData.length;
+    const pct = Math.round(score / quizData.length * 100);
+    let grade = '';
+    if (pct >= 90) grade = '훌륭합니다! 한국사 마스터!';
+    else if (pct >= 70) grade = '좋아요! 조금만 더 공부하면 완벽!';
+    else if (pct >= 50) grade = '절반 이상! 꾸준히 복습하세요.';
+    else grade = '다시 도전해 보세요!';
+    document.getElementById('grade').textContent = pct + '% — ' + grade;
+    summary.style.display = 'block';
+    summary.scrollIntoView({ behavior: 'smooth' });
+}
+
+function filterByPeriod(period) {
+    currentFilter = period;
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    quizData.forEach((q, i) => {
+        const card = document.getElementById('card-' + i);
+        if (period === '전체' || q.period === period) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+}
+
+function resetQuiz() {
+    answered = 0; score = 0;
+    states.fill(null);
+    document.getElementById('answered').textContent = 0;
+    document.getElementById('score').textContent = 0;
+    document.getElementById('resultSummary').style.display = 'none';
+    quizData.forEach((q, i) => {
+        const input = document.getElementById('input-' + i);
+        const btn = document.getElementById('btn-' + i);
+        const fb = document.getElementById('fb-' + i);
+        const card = document.getElementById('card-' + i);
+        const hint = document.getElementById('hint-' + i);
+        input.value = ''; input.disabled = false;
+        btn.disabled = false;
+        fb.className = 'feedback'; fb.textContent = '';
+        card.className = 'question-card' + (currentFilter !== '전체' && q.period !== currentFilter ? ' hidden' : '');
+        hint.classList.remove('show');
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function render() {
+    const nav = document.getElementById('periodNav');
+    nav.innerHTML = '<button class="period-btn active" onclick="filterByPeriod(\'전체\')">전체 (' + quizData.length + ')</button>';
+    periods.forEach(p => {
+        const count = quizData.filter(q => q.period === p).length;
+        nav.innerHTML += '<button class="period-btn" onclick="filterByPeriod(\'' + p + '\')">' + p + ' (' + count + ')</button>';
+    });
+
+    const container = document.getElementById('quizContainer');
+    container.innerHTML = '';
+    quizData.forEach((q, i) => {
+        container.innerHTML += '<div class="question-card" id="card-' + i + '">' +
+            '<div class="q-header">' +
+                '<span class="q-number">Q' + (i+1) + '</span>' +
+                '<span class="q-period">' + q.period + '</span>' +
+            '</div>' +
+            '<div class="q-text">' + q.q + '</div>' +
+            '<div class="answer-row">' +
+                '<input type="text" class="answer-input" id="input-' + i + '" placeholder="답을 입력하세요" onkeydown="if(event.key===\'Enter\')checkAnswer(' + i + ')">' +
+                '<button class="submit-btn" id="btn-' + i + '" onclick="checkAnswer(' + i + ')">확인</button>' +
+            '</div>' +
+            '<div class="feedback" id="fb-' + i + '"></div>' +
+            '<button class="hint-btn" onclick="showHint(' + i + ')">힌트 보기</button>' +
+            '<div class="hint-text" id="hint-' + i + '">' + q.hint + '</div>' +
+        '</div>';
+    });
+
+    document.getElementById('total').textContent = quizData.length;
+}
+
+render();
 </script>
 </body>
 </html>
